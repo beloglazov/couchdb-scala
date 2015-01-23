@@ -43,17 +43,17 @@ object Basic extends App {
   val db     = couch.db(dbName, typeMapping)
 
   val actions = for {
-  // Delete the database or ignore the error if it doesn't exist
+    // Delete the database or ignore the error if it doesn't exist
     _ <- couch.dbs.delete(dbName).or(Task.now(Res.Ok()))
     // Create a new database
     _ <- couch.dbs.create(dbName)
     // Insert documents into the database
     _ <- db.docs.createMany(Seq(alice, bob, carl))
-    // Retrieve all documents from the database and unserialise to Person
+    // Retrieve all documents from the database and unserialize to Person
     docs <- db.docs.getMany.queryIncludeDocs[Person]
   } yield docs.getDocsData
 
-  // Execute the actions and await the result
+  // Execute the actions and process the result
   actions.attemptRun match {
     // In case of an error (left side of Either), print it
     case -\/(e) => println(e)
