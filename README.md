@@ -56,13 +56,13 @@ object Basic extends App {
 }
 ```
 
-## Author
+### Author
 
 The project has been developed by [Anton Beloglazov](http://beloglazov.info/).
 
 For more open-source projects from IBM, head over to (http://ibm.github.io).
 
 
-## Copyright and license
+### Copyright and license
 
 © Copyright 2015 IBM Corporation. Distributed under the [Apache 2.0 license](LICENSE).
