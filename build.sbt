@@ -53,13 +53,13 @@ scalacOptions ++= Seq(
 wartremover.wartremoverSettings
 
 wartremover.wartremoverErrors in (Compile, compile) ++= Seq(
-  Wart.Any,
-  Wart.Any2StringAdd,
-  Wart.EitherProjectionPartial,
-  Wart.OptionPartial,
-  Wart.Product,
-  Wart.Serializable,
-  Wart.ListOps
+  wartremover.Wart.Any,
+  wartremover.Wart.Any2StringAdd,
+  wartremover.Wart.EitherProjectionPartial,
+  wartremover.Wart.OptionPartial,
+  wartremover.Wart.Product,
+  wartremover.Wart.Serializable,
+  wartremover.Wart.ListOps
 )
 
 
