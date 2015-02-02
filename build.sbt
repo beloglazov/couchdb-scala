@@ -1,3 +1,5 @@
+sonatypeSettings
+
 organization := "com.ibm"
 
 name := "couchdb-scala"
@@ -6,7 +8,12 @@ version := "0.5.0-SNAPSHOT"
 
 scalaVersion := "2.11.5"
 
-resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+description := "A purely functional Scala client for CouchDB"
+
+homepage := Some(url("https://github.com/beloglazov/couchdb-scala"))
+
+licenses := Seq("The Apache Software License, Version 2.0"
+  -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
 libraryDependencies ++= Seq(
   "org.scalaz"                  %% "scalaz-core"                 % "7.1.0",
@@ -14,11 +21,11 @@ libraryDependencies ++= Seq(
   "com.github.julien-truffaut"  %% "monocle-core"                % "1.0.1",
   "com.github.julien-truffaut"  %% "monocle-macro"               % "1.0.1",
   "com.lihaoyi"                 %% "upickle"                     % "0.2.6-RC1",
-  "org.http4s"                  %% "http4s-core"                 % "0.5.4",
-  "org.http4s"                  %% "http4s-client"               % "0.5.4",
-  "org.http4s"                  %% "http4s-blazeclient"          % "0.5.4",
+  "org.http4s"                  %% "http4s-core"                 % "0.6.0",
+  "org.http4s"                  %% "http4s-client"               % "0.6.0",
+  "org.http4s"                  %% "http4s-blazeclient"          % "0.6.0",
   "org.log4s"                   %% "log4s"                       % "1.1.3",
-  "org.specs2"                  %% "specs2"                      % "2.4.15" % "test",
+  "org.specs2"                  %% "specs2"                      % "2.4.16" % "test",
   "org.typelevel"               %% "scalaz-specs2"               % "0.3.0"  % "test",
   "org.scalacheck"              %% "scalacheck"                  % "1.12.1" % "test",
   "org.scalaz"                  %% "scalaz-scalacheck-binding"   % "7.1.0"  % "test",
@@ -40,7 +47,7 @@ scalacOptions ++= Seq(
   "-Ywarn-numeric-widen",
   "-Ywarn-value-discard",
   "-Xfuture",
-  "-Ywarn-unused-import" // 2.11 only
+  "-Ywarn-unused-import"
 )
 
 wartremoverErrors in (Compile, compile) ++= Seq(
@@ -70,11 +77,6 @@ testScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Test).toTask
 
 testFrameworks := Seq(TestFrameworks.Specs2, TestFrameworks.ScalaCheck)
 
-parallelExecution in Test := false
-
-testOptions in Test += Tests.Argument(
-  TestFrameworks.ScalaCheck, "-maxSize", "5", "-minSuccessfulTests", "33", "-workers", "1")
-
 unmanagedSourceDirectories in Compile += baseDirectory.value / "examples" / "src" / "main" / "scala"
 
 initialCommands in console := "import scalaz._, Scalaz._"
@@ -83,14 +85,27 @@ initialCommands in console in Test := "import scalaz._, Scalaz._, scalacheck.Sca
 
 logBuffered := false
 
-lazy val buildSettings = Seq(
-  organization := organization.value,
-  version := version.value,
-  scalaVersion := scalaVersion.value
-)
 
-val app = (project in file("."))
-  .settings(buildSettings: _*)
-  .settings(assemblySettings: _*)
-  .disablePlugins(plugins.JUnitXmlReportPlugin)
+publishMavenStyle := true
 
+publishArtifact in Test := false
+
+pomExtra := {
+    <organization>
+      <name>IBM Corporation</name>
+      <url>http://www.ibm.com</url>
+    </organization>
+    <scm>
+      <connection>scm:git:git@github.com:beloglazov/couchdb-scala.git</connection>
+      <developerConnection>scm:git:git@github.com:beloglazov/couchdb-scala.git</developerConnection>
+      <url>https://github.com/beloglazov/couchdb-scala</url>
+    </scm>
+    <developers>
+      <developer>
+        <id>beloglazov</id>
+        <name>Anton Beloglazov</name>
+        <email>anton.beloglazov@gmail.com</email>
+        <url>http://beloglazov.info</url>
+      </developer>
+    </developers>
+}
