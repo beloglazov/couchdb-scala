@@ -77,6 +77,8 @@ testScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Test).toTask
 
 testFrameworks := Seq(TestFrameworks.Specs2, TestFrameworks.ScalaCheck)
 
+parallelExecution in Test := false
+
 unmanagedSourceDirectories in Compile += baseDirectory.value / "examples" / "src" / "main" / "scala"
 
 initialCommands in console := "import scalaz._, Scalaz._"
