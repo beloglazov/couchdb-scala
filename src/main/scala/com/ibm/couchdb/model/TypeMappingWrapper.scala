@@ -16,12 +16,26 @@
 
 package com.ibm.couchdb.model
 
-import com.ibm.couchdb._
+import scalaz.Scalaz._
+import scalaz._
 
-object Req {
+trait TypeMappingWrapper {
 
-  case class Docs[T](docs: Seq[CouchDoc[T]])
+  final class TypeMapping private(val types: Map[String, String])
 
-  case class DocKeys[T](keys: Seq[T])
+  object TypeMapping {
+
+    def apply(mapping: (Class[_], String)*): String \/ TypeMapping = {
+      if (mapping.map((x: (Class[_], String)) => x._2).toSet.size != mapping.size) {
+        "Type aliases must be unique".left[TypeMapping]
+      } else {
+        new TypeMapping(mapping.map((x: (Class[_], String)) =>
+          (x._1.getCanonicalName, x._2)).toMap).right[String]
+      }
+    }
+
+    val empty = new TypeMapping(Map.empty[String, String])
+
+  }
 
 }

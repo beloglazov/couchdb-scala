@@ -17,12 +17,11 @@
 package com.ibm.couchdb
 
 import com.ibm.couchdb.api.{Design, Documents}
-import com.ibm.couchdb.model.CouchDocMeta
-import com.ibm.couchdb.spec.{CouchDbSpecification, Fixtures, SpecConfig}
+import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import org.http4s.Status
 import org.specs2.matcher.MatchResult
 
-class CouchDbSpec extends CouchDbSpecification with Fixtures {
+class CouchDbSpec extends CouchDbSpecification {
 
   val couch = new CouchDb(SpecConfig.couchDbHost, SpecConfig.couchDbPort, SpecConfig.couchDbScheme)
   val db1   = "couchdb-scala-couchdb-spec1"

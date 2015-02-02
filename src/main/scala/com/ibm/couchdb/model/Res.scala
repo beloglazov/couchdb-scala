@@ -16,6 +16,7 @@
 
 package com.ibm.couchdb.model
 
+import com.ibm.couchdb._
 import org.http4s.Status
 
 import scalaz.concurrent.Task

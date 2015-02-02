@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb.implicits
 
-import com.ibm.couchdb._
+import org.http4s.Status
+import upickle._
 
-object Req {
+trait UpickleImplicits extends Types {
 
-  case class Docs[T](docs: Seq[CouchDoc[T]])
+  implicit val statusW: Writer[Status] = Writer[Status] {
+    x => Js.Num(x.code.toDouble)
+  }
 
-  case class DocKeys[T](keys: Seq[T])
+  implicit val statusR: Reader[Status] = Reader[Status] {
+    case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
+  }
 
 }
+

@@ -16,6 +16,7 @@
 
 package com.ibm.couchdb.model
 
+import com.ibm.couchdb._
 import monocle.Lens
 import monocle.macros.Lenser
 

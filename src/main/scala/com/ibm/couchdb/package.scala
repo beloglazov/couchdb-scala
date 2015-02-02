@@ -16,8 +16,10 @@
 
 package com.ibm
 
-import com.ibm.couchdb.json.UpickleImplicits
+import com.ibm.couchdb.implicits.{TaskImplicits, UpickleImplicits}
+import com.ibm.couchdb.model.{CouchModel, TypeMappingWrapper}
 
-package object couchdb extends UpickleImplicits {
-
-}
+package object couchdb extends TaskImplicits with
+                               UpickleImplicits with
+                               CouchModel with
+                               TypeMappingWrapper {}

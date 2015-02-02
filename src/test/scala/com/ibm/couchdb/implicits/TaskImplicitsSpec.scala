@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.json
+package com.ibm.couchdb.implicits
 
-import org.http4s.Status
-import upickle._
+import com.ibm.couchdb.api.Databases
+import com.ibm.couchdb.spec.CouchDbSpecification
 
-trait UpickleImplicits extends Types {
+class TaskImplicitsSpec extends CouchDbSpecification {
 
-  implicit val statusW: Writer[Status] = Writer[Status] {
-    x => Js.Num(x.code.toDouble)
-  }
+  val db        = "couchdb-scala-task-implicits-spec"
+  val databases = new Databases(client)
 
-  implicit val statusR: Reader[Status] = Reader[Status] {
-    case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
+  private def clear() = await(databases.delete(db))
+
+  "Task implicits" >> {
+
+    "Ignore error" >> {
+      clear()
+      awaitOk(databases.create(db))
+      awaitError(databases.create(db), "file_exists")
+      awaitOk(databases.create(db).ignoreError)
+    }
+
   }
 
 }
-

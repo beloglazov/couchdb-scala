@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb.implicits
 
-import scalaz.Scalaz._
-import scalaz._
+import com.ibm.couchdb.model.Res
 
-final class TypeMapping private(val types: Map[String, String])
+import scalaz.concurrent.Task
 
-object TypeMapping {
+trait TaskImplicits {
 
-  def apply(mapping: (Class[_], String)*): String \/ TypeMapping = {
-    if (mapping.map((x: (Class[_], String)) => x._2).toSet.size != mapping.size) {
-      "Type aliases must be unique".left[TypeMapping]
-    } else {
-      new TypeMapping(mapping.map((x: (Class[_], String)) =>
-        (x._1.getCanonicalName, x._2)).toMap).right[String]
+  implicit class TaskOps[T](task: Task[T]) {
+    def ignoreError: Task[Res.Ok] = {
+      task.attempt.map(_ => Res.Ok())
     }
   }
 
-  val empty = new TypeMapping(Map.empty[String, String])
-
 }
+

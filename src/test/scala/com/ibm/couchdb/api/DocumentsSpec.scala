@@ -16,7 +16,7 @@
 
 package com.ibm.couchdb.api
 
-import com.ibm.couchdb.spec.{SpecConfig, CouchDbSpecification}
+import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import monocle.syntax._
 import org.http4s.Status
 

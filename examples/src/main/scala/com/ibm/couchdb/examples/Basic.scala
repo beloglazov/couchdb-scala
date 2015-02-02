@@ -16,11 +16,9 @@
 
 package com.ibm.couchdb.examples
 
-import com.ibm.couchdb.CouchDb
-import com.ibm.couchdb.model.{Res, TypeMapping}
+import com.ibm.couchdb._
 
 import scalaz._
-import scalaz.concurrent.Task
 
 object Basic extends App {
 
@@ -43,8 +41,8 @@ object Basic extends App {
   val db     = couch.db(dbName, typeMapping)
 
   val actions = for {
-    // Delete the database or ignore the error if it doesn't exist
-    _ <- couch.dbs.delete(dbName).or(Task.now(Res.Ok()))
+  // Delete the database or ignore the error if it doesn't exist
+    _ <- couch.dbs.delete(dbName).ignoreError
     // Create a new database
     _ <- couch.dbs.create(dbName)
     // Insert documents into the database

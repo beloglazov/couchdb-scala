@@ -16,9 +16,9 @@
 
 package com.ibm.couchdb.api
 
-import com.ibm.couchdb.spec.{CouchDbSpecification, Fixtures}
+import com.ibm.couchdb.spec.CouchDbSpecification
 
-class QueryListSpec extends CouchDbSpecification with Fixtures {
+class QueryListSpec extends CouchDbSpecification {
 
   val db        = "couchdb-scala-query-list-spec"
   val databases = new Databases(client)

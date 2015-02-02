@@ -16,10 +16,11 @@
 
 package com.ibm.couchdb.spec
 
+import com.ibm.couchdb._
 import com.ibm.couchdb.api.Databases
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.json.UpickleImplicits
-import com.ibm.couchdb.model.{Config, CouchException, Res}
+import com.ibm.couchdb.implicits.{TaskImplicits, UpickleImplicits}
+import com.ibm.couchdb.model.{Config, Res}
 import org.specs2.matcher._
 import org.specs2.mutable._
 import org.specs2.scalaz.DisjunctionMatchers
@@ -28,12 +29,13 @@ import org.specs2.specification.AllExpectations
 import scalaz._
 import scalaz.concurrent.Task
 
-trait CouchDbSpecification extends Specification
-                                   with Fixtures
-                                   with AllExpectations
-                                   with DisjunctionMatchers
-                                   with MatcherMacros
-                                   with UpickleImplicits {
+trait CouchDbSpecification extends Specification with
+                                   Fixtures with
+                                   AllExpectations with
+                                   DisjunctionMatchers with
+                                   MatcherMacros with
+                                   TaskImplicits with
+                                   UpickleImplicits {
   sequential
 
   val client = new Client(Config(

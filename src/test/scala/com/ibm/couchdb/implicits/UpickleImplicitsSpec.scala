@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.json
+package com.ibm.couchdb.implicits
 
 import com.ibm.couchdb.spec.Fixtures
 import org.http4s.Status

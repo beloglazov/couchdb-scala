@@ -16,8 +16,9 @@
 
 package com.ibm.couchdb.core
 
-import com.ibm.couchdb.json.UpickleImplicits
-import com.ibm.couchdb.model.{Config, CouchException, Res}
+import com.ibm.couchdb._
+import com.ibm.couchdb.implicits.UpickleImplicits
+import com.ibm.couchdb.model.{Config, Res}
 import org.http4s.Http4s._
 import org.http4s.Method._
 import org.http4s._

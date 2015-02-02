@@ -35,8 +35,8 @@ object Basic extends App {
   val db     = couch.db(dbName, typeMapping)
 
   val actions = for {
-    // Delete the database or ignore the error if it doesn't exist
-    _ <- couch.dbs.delete(dbName).or(Task.now(Res.Ok()))
+  // Delete the database or ignore the error if it doesn't exist
+    _ <- couch.dbs.delete(dbName).ignoreError
     // Create a new database
     _ <- couch.dbs.create(dbName)
     // Insert documents into the database

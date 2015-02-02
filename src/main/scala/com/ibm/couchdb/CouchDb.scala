@@ -18,7 +18,7 @@ package com.ibm.couchdb
 
 import com.ibm.couchdb.api.{Databases, Design, Documents, Query, Server}
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.model.{Config, TypeMapping}
+import com.ibm.couchdb.model.Config
 
 import scalaz._
 
