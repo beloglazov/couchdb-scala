@@ -15,6 +15,8 @@ homepage := Some(url("https://github.com/beloglazov/couchdb-scala"))
 licenses := Seq("The Apache Software License, Version 2.0"
   -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+
 libraryDependencies ++= Seq(
   "org.scalaz"                  %% "scalaz-core"                 % "7.1.0",
   "org.scalaz"                  %% "scalaz-effect"               % "7.1.0",
