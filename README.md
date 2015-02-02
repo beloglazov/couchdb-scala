@@ -1,5 +1,7 @@
 # couchdb-scala
 
+[![Build Status](https://travis-ci.org/beloglazov/couchdb-scala.svg?branch=master)](https://travis-ci.org/beloglazov/couchdb-scala)
+
 This is a Scala library providing a purely functional client for
 [CouchDB](http://couchdb.apache.org/). The design goals are compositionality,
 expressiveness, and type-safety.
