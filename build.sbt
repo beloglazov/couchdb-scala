@@ -50,7 +50,9 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import"
 )
 
-wartremoverErrors in (Compile, compile) ++= Seq(
+wartremover.wartremoverSettings
+
+wartremover.wartremoverErrors in (Compile, compile) ++= Seq(
   Wart.Any,
   Wart.Any2StringAdd,
   Wart.EitherProjectionPartial,
