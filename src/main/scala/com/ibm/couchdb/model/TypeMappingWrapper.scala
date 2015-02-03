@@ -16,22 +16,15 @@
 
 package com.ibm.couchdb.model
 
-import scalaz.Scalaz._
-import scalaz._
-
 trait TypeMappingWrapper {
 
   final class TypeMapping private(val types: Map[String, String])
 
   object TypeMapping {
 
-    def apply(mapping: (Class[_], String)*): String \/ TypeMapping = {
-      if (mapping.map((x: (Class[_], String)) => x._2).toSet.size != mapping.size) {
-        "Type aliases must be unique".left[TypeMapping]
-      } else {
-        new TypeMapping(mapping.map((x: (Class[_], String)) =>
-          (x._1.getCanonicalName, x._2)).toMap).right[String]
-      }
+    def apply(mapping: (Class[_], String)*): TypeMapping = {
+      new TypeMapping(
+        mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
     }
 
     val empty = new TypeMapping(Map.empty[String, String])

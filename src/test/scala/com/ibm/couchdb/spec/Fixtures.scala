@@ -20,13 +20,11 @@ import com.ibm.couchdb._
 import com.ibm.couchdb.model.Lenses._
 import monocle.macros.Lenser
 
-import scalaz.\/-
-
 trait Fixtures {
 
   case class FixPerson(name: String, age: Int)
 
-  val \/-(typeMapping) = TypeMapping(classOf[FixPerson] -> "Person")
+  val typeMapping = TypeMapping(classOf[FixPerson] -> "Person")
 
   val lenser         = Lenser[FixPerson]
   val _personName    = lenser(_.name)

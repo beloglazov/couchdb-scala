@@ -26,7 +26,7 @@ object Basic extends App {
   case class Person(name: String, age: Int)
 
   // Define a type mapping used to transform class names into the doc kind
-  val \/-(typeMapping) = TypeMapping(classOf[Person] -> "Person")
+  val typeMapping = TypeMapping(classOf[Person] -> "Person")
 
   // Define some sample data
   val alice = Person("Alice", 25)
