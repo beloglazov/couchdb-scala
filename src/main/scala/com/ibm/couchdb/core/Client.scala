@@ -141,26 +141,19 @@ class Client(config: Config) extends UpickleImplicits {
     }
   }
 
-  private def post[T: R](resource: String,
-                         expectedStatus: Status,
-                         entity: EntityEncoder.Entity,
-                         params: Seq[(String, String)]): Task[T] = {
-    val request = Request(
-      method = POST,
-      uri = url(resource, params),
-      headers = Headers(
-        Header("Accept", "application/json"),
-        Header("Content-Type", "application/json")),
-      body = entity.body)
-    reqAndRead[T](request, expectedStatus)
-  }
-
   def post[B: W, T: R](resource: String,
                        expectedStatus: Status,
                        body: B,
                        params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
     EntityEncoder[String].toEntity(upickle.write(body)) flatMap { entity =>
-      post[T](resource, expectedStatus, entity, params)
+      val request = Request(
+        method = POST,
+        uri = url(resource, params),
+        headers = Headers(
+          Header("Accept", "application/json"),
+          Header("Content-Type", "application/json")),
+        body = entity.body)
+      reqAndRead[T](request, expectedStatus)
     }
   }
 
