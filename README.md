@@ -339,8 +339,12 @@ db.docs.getMany.queryIncludeDocs[Person]
 
 A call to `getMany` returns an instance of `GetManyDocumentsQueryBuilder`, which
 is an object allowing you to build a query in a type-safe way. Under the hood,
-it makes a request to the `/awesome-database/_all_docs`
-[endpoint](http://docs.couchdb.org/en/1.6.1/api/database/bulk-api.html#get--db-_all_docs). As you can see from the linked documentation page on this endpoint, it has many optional parameters. This builder class provides a fluent interface for constructing queries to this endpoint. For example, to limit the number of documents to the maximum of 10 and returns them in the descending order:
+it makes a request to the [/{db}/_all_docs`
+endpoint](http://docs.couchdb.org/en/1.6.1/api/database/bulk-api.html#get--db-_all_docs).
+As you can see from the linked documentation page on this endpoint, it has many
+optional parameters. This builder class provides a fluent interface for
+constructing queries to this endpoint. For example, to limit the number of
+documents to the maximum of 10 and returns them in the descending order:
 
 ```Scala
 
