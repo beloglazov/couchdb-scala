@@ -4,7 +4,7 @@
 
 This is a Scala library providing a purely functional client for
 [CouchDB](http://couchdb.apache.org/). The design goals are compositionality,
-expressiveness, and type-safety.
+expressiveness, type-safety, and ease of use.
 
 It's based on the following awesome libraries:
 [Scalaz](https://github.com/scalaz/scalaz),
@@ -18,8 +18,8 @@ It's based on the following awesome libraries:
 This Scala client tries to stay as close to the native CouchDB API as possible,
 while adding type-safety and automatic serialization/deserialization of Scala
 objects to and from JSON using uPickle. The best way to get up to speed with the
-client is to first have a good understanding of how CouchDB works and its native
-API. Some good resources to learn CouchDB are:
+client is to first obtain a good understanding of how CouchDB works and its
+native API. Some good resources to learn CouchDB are:
 
   - [CouchDB: The Definitive Guide](http://guide.couchdb.org/)
   - [CouchDB Documentation](http://docs.couchdb.org/en/)
@@ -43,16 +43,16 @@ Through this object, you get access to the following CouchDB API sections:
   - Server: server-level operations
   - Databases: operations on databases
   - Design: operations for creating and managing design documents
-  - Documents: creating and querying documents and attachments
+  - Documents: creating, modifying, and querying documents and attachments
   - Query: querying views, shows, and lists
 
 
 ### Server API
 
 The server API section provides only 3 operations: getting the server info,
-which is equivalent to making a get request to the `/` resource of the CouchDB
+which is equivalent to making a GET request to the `/` resource of the CouchDB
 server; generating a UUID; and generating a sequence of UUIDs. For example, to
-make a server info request:
+make a server info request using the client instance created above:
 
 ```Scala
 couch.server.info.run
@@ -63,8 +63,8 @@ represents the server API section. Then, calling the `info` method generates a
 [scalaz.concurrent.Task](https://github.com/scalaz/scalaz/blob/scalaz-seven/concurrent/src/main/scala/scalaz/concurrent/Task.scala),
 which describes an action of making a GET request to the server. At this point,
 an actual request is not yet made. Instead, `Task` encapsulates a description of
-a computation, which can be executed later when required. This allows us to
-control side-effects and keep the functions pure. Tim Perrett has written a nice
+a computation, which can be executed later. This allows us to control
+side-effects and keep the functions pure. Tim Perrett has written a very nice
 [blog
 post](http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/)
 with more background and documentation on Scalaz's `Task`.
@@ -77,11 +77,12 @@ onto the `ServerInfo` case class that contains a few fields describing the
 server instance like the CouchDB version, etc. Ideally, instead of executing a
 `Task` and causing side-effects in the middle of a program, we should delay the
 execution as much as possible to keep the core application logic pure. Rather
-then executing `Task`s to obtain the query result, we can compose then in a
-functional way using higher-order functions like `map` and `flatMap`, or
-for-comprehensions. We will see more examples of this later. In further code
-snippets, I will omit calls to the `run` method assuming that the point of
-executing effectful computations is externalized.
+then executing `Task`s to obtain the query result, we can perform action on the
+query results and compose `Task`s in a functional way using higher-order
+functions like `map` and `flatMap`, or for-comprehensions. We will see more
+examples of this later. In further code snippets, I will omit calls to the `run`
+method assuming that the point where effectful computations are executed is
+externalized.
 
 The other operations of the server API can be performed in a similar way. To
 generate a UUID, you just need to call `couch.server.mkUuid`, which returns
@@ -94,7 +95,7 @@ UUIDs. For more usage examples, please refer to
 ### Databases API
 
 The databases API implements more useful functionality like creating, deleting,
-and getting info about databases. To create a database:
+and getting information about databases. To create a database:
 
 ```Scala
 couch.dbs.create("awesome-database")
@@ -104,8 +105,10 @@ The `couch.dbs` property refers to an instance of the `Databases` class, which
 represents the databases API section. A call to the `create` method returns a
 `Task[Res.Ok]`, which represents a request returning an instance of the `Res.Ok`
 case class if it succeeds, or a failure object if it fails. Failure handling is
-another topic that we go through later, but in two words the actual result of a
-`Task` execution is `Throwable \/ A`, which is
+done using methods on `Task`, part of which are covered in Tim Perrett's [blog
+post](http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/).
+In two words the actual result of a `Task` execution is `Throwable \/ A`, which
+is
 [either](https://github.com/scalaz/scalaz/blob/scalaz-seven/core/src/main/scala/scalaz/Either.scala)
 an exception or the desired type `A`. In the case or `dbs.create`, the desired
 result is of type `Res.Ok`, which is a case class representing a response from
@@ -114,17 +117,17 @@ the server in case of a succeeded request.
 Other methods provided by the databases API are `dbs.delete("awesome-database")`
 to delete a database, `dbs.get("awesome-database")` to get information about a
 database returned as an instance of `DbInfo` case class that includes such
-fields as data size, number of documents in the database, etc. For examples of
-using the databases API, please refer to
+fields as data size, number of documents in the database, etc. For some examples
+of using the databases API, please refer to
 [DatabasesSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/DatabasesSpec.scala).
 
 
 ### Design API
 
-While the API sections described above operate across databases, the Design,
-Documents, and Query APIs are applied within the context of a single database.
-Therefore, to obtain instances of these interfaces, the context needs to be
-specialized by specifying the name of a database of interest:
+While the API sections described earlier operate at the level above databases,
+the Design, Documents, and Query APIs are applied within the context of a single
+database. Therefore, to obtain instances of these interfaces, the context needs
+to be specialized by specifying the name of a database of interest:
 
 ```Scala
 val db = couch.db("awesome-database", TypeMapping.empty)
@@ -190,26 +193,26 @@ design document to our database:
 db.design.create(designDoc)
 ```
 
-This method call return an object of type `Task[Res.DocOk]`. The `DocOk` case
+This method call returns an object of type `Task[Res.DocOk]`. The `DocOk` case
 class represents a response from the server to a succeeded request involving
-creating, modifying, and deleting documents. Compared with `Res.Ok`, it included
-2 extra fields: `id` (the ID of the created/updated/deleted document) and `rev
+creating, modifying, and deleting documents. Compared with `Res.Ok`, it includes
+2 extra fields: `id` (the ID of the created/updated/deleted document) and `rev`
 (the revision of the created/updated/deleted document)`. In the case of design
-documents, based on the CouchDB specification, the ID is composed of the design
-name prefixed with `_design/`. In other words, `designDoc` will get the
-`_design/test-design` ID. Each revision is a unique 32-character UUID string. We
-can now retrieve the design document from the database by name or by ID:
+documents, the ID is composed of the design name prefixed with `_design/`. In
+other words, `designDoc` will get the `_design/test-design` ID. Each revision is
+a unique 32-character UUID string. We can now retrieve the design document from
+the database by name or by ID:
 
 ```Scala
 db.design.get("test-design")
 db.design.getById("_design/test-design")
 ```
 
-Once executed, both of these calls return an instance of `CouchDesign`
-corresponding to our design document with some extra fields, e.g., `_id`,
-`_rev`, `_attachments`, etc. To update a design document, we must first retrieve
-it from the database to know the current revision and avoid
-[conflicts](http://guide.couchdb.org/draft/conflicts.html), makes changes to the
+Once the returned `Task`s are executed, each of these calls returns an instance
+of `CouchDesign` corresponding to our design document with some extra fields,
+e.g., `_id`, `_rev`, `_attachments`, etc. To update a design document, we must
+first retrieve it from the database to know the current revision and avoid
+[conflicts](http://guide.couchdb.org/draft/conflicts.html), make changes to the
 content, and submit the updated version. Let's say we want to add another view,
 which emits ages as keys and names as values assigned to a `nameView` variable,
 then our updated view `Map` is:
@@ -245,9 +248,9 @@ One of the design goals of `couchdb-scala` is to make it as easy as possible to
 store and retrieve documents by automating the process of serialization and
 deserialization to and from JSON. This functionality is based on
 [uPickle](https://github.com/lihaoyi/upickle), which uses macros to
-automatically generate readers and writers for *case classes*. However, it also
+automatically generate readers and writers for case classes. However, it also
 allows implementing custom readers and writers for your domain classes if they
-are not *case classes*. As an example, these can be
+are not *case classes*. For example, these can be
 [Thrift](https://thrift.apache.org/) /
 [Scrooge](https://github.com/twitter/scrooge) generated entities or your custom
 classes.
@@ -262,7 +265,7 @@ representation of the document type that can be used for filtering in views,
 shows, and lists (we use `kind` instead of `type` here, as `type` is a reserved
 keyword in Scala). In other words, if your domain model is represented by a set
 of case classes, the serialization and deserialization will be handled
-completely automatically for you. `TypeMapping` is used for defining a mapping
+completely transparently for you. `TypeMapping` is used for defining a mapping
 from you domain model classes to a string representation of the corresponding
 document type. Continuing the previous example with the `Person` case class, we
 can define a `TypeMapping`, for example, as follows:
@@ -274,7 +277,7 @@ val typeMapping = TypeMapping(classOf[Person] -> "Person")
 Here, we are specifying a mapping from the class name `Person` to a document
 kind as a string. The `TypeMapping` factory maps classes to their canonical
 names to preserve uniqueness. Whenever a document is submitted to the database,
-the `kind` field gets automatically populated based on the specified mapping. If
+the `kind` field is automatically populated based on the specified mapping. If
 the type mapping is not specified (as we did above by using
 `TypeMapping.empty`), the `kind` field is ignored. We can now provide the newly
 defined `TypeMapping` to create a fully specified database context:
@@ -304,8 +307,9 @@ We can now store these objects in the database as follows:
 db.docs.create(alice)
 ```
 
-This will use a UUID generated using `server.mkUuid` that we've seen above.
-Another option is to specify our own document ID if it's known to be unique:
+This method assigns a UUID generated with `server.mkUuid` that we've seen above
+to the document being stored. Another option is to specify our own document ID
+if it's known to be unique:
 
 ```Scala
 db.docs.create(bob, "bob")
@@ -325,46 +329,50 @@ db.docs.get[Person]("bob")
 ```
 
 Here, we have to be explicit about the expected object type to allow uPickle to
-do its magic, that's we specify the type parameter to the `get` method call.
-This call returns `Task[CouchDoc[Person]]`, which basically means that we are
-getting back a task that after executing successfully will give us back an
-instance of `CouchDoc[Person]`. This object will contain an instance of `Person`
-in the `doc` field equivalent to the original `Person("Bob", 30)`. Another
-simple way to retrieve a set of documents (if all documents in the database are
-known to be of the same type) is the following:
+do its magic, that's why we specify the type parameter to the `get` method. This
+method returns `Task[CouchDoc[Person]]`, which basically means that we are
+getting back a task that after executing successfully will give us an instance
+of `CouchDoc[Person]`. This object will contain an instance of `Person` in the
+`doc` field equivalent to the original `Person("Bob", 30)`. Another simple way
+to retrieve a set of documents (if all documents in the database are known to be
+of the same type) is the following:
 
 ```Scala
 db.docs.getMany.queryIncludeDocs[Person]
 ```
 
 A call to `getMany` returns an instance of `GetManyDocumentsQueryBuilder`, which
-is an object allowing you to build a query in a type-safe way. Under the hood,
-it makes a request to the [/{db}/_all_docs](http://docs.couchdb.org/en/1.6.1/api/database/bulk-api.html#get--db-_all_docs) endpoint.
-As you can see from the linked documentation page on this endpoint, it has many
-optional parameters. This builder class provides a fluent interface for
-constructing queries to this endpoint. For example, to limit the number of
-documents to the maximum of 10 and returns them in the descending order:
+is a class allowing you to build a query in a type-safe way. Under the hood, it
+makes a request to the
+[/{db}/_all_docs](http://docs.couchdb.org/en/1.6.1/api/database/bulk-api.html#get--db-_all_docs)
+endpoint. As you can see from the linked documentation on this endpoint, it has
+many optional parameters. The `GetManyDocumentsQueryBuilder` class provides a
+fluent interface for constructing queries to this endpoint. For example, to
+limit the number of documents to the maximum of 10 and return them in the
+descending order:
 
 ```Scala
 
 db.docs.getMany.limit(10).descending.queryIncludeDocs[Person]
 ```
 
-This create an instance of `Task[CouchDocs[String, CouchDocRev, Person]]`, which
-looks complicated but it just represents a task that returns basically a
+This creates an instance of `Task[CouchDocs[String, CouchDocRev, Person]]`,
+which looks complicated but just represents a task that returns basically a
 sequence of documents. The `queryIncludeDocs` method serves as a way to complete
 the query construction process, which also sets the `include_docs` option to
 include the full content of the documents mapped to `Person` objects on arrival.
 
 
-It's also possible to execute a query without including the document content,
-which is equivalent to keeping the `include_docs` set to its default `false`
-value `db.docs.getMany.query`. This query will only return metadata on the
+It's also possible to execute a query without including the document content
+using `db.docs.getMany.query`, which is equivalent to keeping the `include_docs`
+set to its default `false` value. This query will only return metadata on the
 matching documents. In this case, we don't need to specify the type parameter as
 no mapping is required since the document content is not retrieved.
 
 There is a similar query builder for retrieving single documents
-`GetDocumentQueryBuilder` making a GET request to the [/{db}/{docid}](http://docs.couchdb.org/en/1.6.1/api/document/common.html#get--db-docid) endpoint. This query builder can accessed through `db.docs.get`.
+`GetDocumentQueryBuilder` that makes GET requests to the
+[/{db}/{docid}](http://docs.couchdb.org/en/1.6.1/api/document/common.html#get--db-docid)
+endpoint. This query builder can accessed through `db.docs.get`.
 
 There are other operations provided by the Documents API, such as updating
 documents, deleting documents, adding attachments, retrieving attachments, etc.
@@ -408,7 +416,7 @@ ageView.startKey("Bob").limit(10).queryIncludeDocs[Person]
 This returns an instance of `Task[CouchDocs[String, Int, Person]]`, which once
 executed results in a sequence of objects encapsulating the metadata about the
 documents (`id`, `key`, `value`, `offset`, `total_rows`) and the corresponding
-`Person` objects. Please follow the definition of case classes in
+`Person` objects. Please follow the definitions of case classes in
 [CouchModel](https://github.com/beloglazov/couchdb-scala/blob/master/src/main/scala/com/ibm/couchdb/model/CouchModel.scala)
 to fully understand the structure of the returned objects.
 
@@ -420,7 +428,7 @@ Carl:
 ageView.query(Seq("Alice", "Carl"))
 ```
 
-This return an instance of `Task[CouchDocsMeta[String, Int]]`. For usage
+This return an instance of `Task[CouchDocsMeta[String, Int]]`. For other usage
 examples of the view Query API, please refer to
 [QueryViewSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/QueryViewSpec.scala).
 
