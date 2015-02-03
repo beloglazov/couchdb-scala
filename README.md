@@ -480,6 +480,12 @@ object Basic extends App {
 }
 ```
 
+You can run this example from the project directory using `sbt`:
+
+```Bash
+sbt "run-main com.ibm.couchdb.examples.Basic"
+```
+
 
 ## Author
 
