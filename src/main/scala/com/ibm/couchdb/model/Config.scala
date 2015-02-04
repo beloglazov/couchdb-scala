@@ -16,5 +16,5 @@
 
 package com.ibm.couchdb.model
 
-case class Config(host: String, port: Int, scheme: String)
+case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
 

@@ -23,9 +23,10 @@ import org.specs2.matcher.MatchResult
 
 class CouchDbSpec extends CouchDbSpecification {
 
-  val couch = new CouchDb(SpecConfig.couchDbHost, SpecConfig.couchDbPort, SpecConfig.couchDbScheme)
-  val db1   = "couchdb-scala-couchdb-spec1"
-  val db2   = "couchdb-scala-couchdb-spec2"
+  val couch = CouchDb(SpecConfig.couchDbHost, SpecConfig.couchDbPort)
+
+  val db1 = "couchdb-scala-couchdb-spec1"
+  val db2 = "couchdb-scala-couchdb-spec2"
 
   "User interface" >> {
 

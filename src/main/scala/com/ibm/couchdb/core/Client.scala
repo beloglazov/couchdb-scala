@@ -23,6 +23,7 @@ import org.http4s.Http4s._
 import org.http4s.Method._
 import org.http4s._
 import org.http4s.client.blaze.PooledHttp1Client
+import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
 
@@ -38,15 +39,20 @@ class Client(config: Config) extends UpickleImplicits {
 
   val client = PooledHttp1Client()
 
-  val uriBase = Uri(
-    scheme = CaseInsensitiveString(config.scheme).some,
+  val baseHeaders = config.credentials match {
+    case Some(x) => Headers(Authorization(BasicCredentials(x._1, x._2)))
+    case None    => Headers()
+  }
+
+  val baseUri = Uri(
+    scheme = CaseInsensitiveString(if (config.https) "https" else "http").some,
     authority = Uri.Authority(
       host = Uri.IPv4(address = config.host),
       port = config.port.some
     ).some)
 
   def url(resource: String, params: Seq[(String, String)] = Seq.empty[(String, String)]): Uri = {
-    uriBase.copy(path = resource).setQueryParams(
+    baseUri.copy(path = resource).setQueryParams(
       params.map(x => (x._1, Seq(x._2))).toMap)
   }
 
@@ -87,7 +93,7 @@ class Client(config: Config) extends UpickleImplicits {
     val request = Request(
       method = GET,
       uri = url(resource, params),
-      headers = Headers(Header("Accept", "application/json")))
+      headers = baseHeaders.put(Header("Accept", "application/json")))
     req(request, expectedStatus).as[String]
   }
 
@@ -97,7 +103,7 @@ class Client(config: Config) extends UpickleImplicits {
     val request = Request(
       method = GET,
       uri = url(resource, params),
-      headers = Headers(Header("Accept", "application/json")))
+      headers = baseHeaders.put(Header("Accept", "application/json")))
     reqAndRead[T](request, expectedStatus)
   }
 
@@ -112,10 +118,10 @@ class Client(config: Config) extends UpickleImplicits {
                         expectedStatus: Status,
                         entity: EntityEncoder.Entity,
                         contentType: String): Task[T] = {
-    val baseHeaders = Headers(Header("Accept", "application/json"))
+    val baseHeadersWithAccept = baseHeaders.put(Header("Accept", "application/json"))
     val headers =
-      if (!contentType.isEmpty) baseHeaders.put(Header("Content-Type", contentType))
-      else baseHeaders
+      if (!contentType.isEmpty) baseHeadersWithAccept.put(Header("Content-Type", contentType))
+      else baseHeadersWithAccept
     val request = Request(
       method = PUT,
       uri = url(resource),
@@ -149,7 +155,7 @@ class Client(config: Config) extends UpickleImplicits {
       val request = Request(
         method = POST,
         uri = url(resource, params),
-        headers = Headers(
+        headers = baseHeaders.put(
           Header("Accept", "application/json"),
           Header("Content-Type", "application/json")),
         body = entity.body)
@@ -161,7 +167,7 @@ class Client(config: Config) extends UpickleImplicits {
     val request = Request(
       method = DELETE,
       uri = url(resource),
-      headers = Headers(Header("Accept", "application/json")))
+      headers = baseHeaders.put(Header("Accept", "application/json")))
     reqAndRead[T](request, expectedStatus)
   }
 

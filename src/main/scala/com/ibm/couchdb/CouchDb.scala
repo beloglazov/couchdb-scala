@@ -20,13 +20,17 @@ import com.ibm.couchdb.api.{Databases, Design, Documents, Query, Server}
 import com.ibm.couchdb.core.Client
 import com.ibm.couchdb.model.Config
 
+import scalaz.Scalaz._
 import scalaz._
 
 case class CouchDbApi(name: String, docs: Documents, design: Design, query: Query)
 
-class CouchDb(host: String, port: Int, scheme: String) {
+class CouchDb private(host: String,
+                      port: Int,
+                      https: Boolean,
+                      credentials: Option[(String, String)]) {
 
-  val client = new Client(Config(host, port, scheme))
+  val client = new Client(Config(host, port, https, credentials))
   val server = new Server(client)
   val dbs    = new Databases(client)
 
@@ -45,8 +49,12 @@ class CouchDb(host: String, port: Int, scheme: String) {
 
 object CouchDb {
 
-  def apply(host: String, port: Int, scheme: String = "http"): CouchDb = {
-    new CouchDb(host, port, scheme)
+  def apply(host: String, port: Int, https: Boolean = false): CouchDb = {
+    new CouchDb(host, port, https, none)
+  }
+
+  def apply(host: String, port: Int, https: Boolean, username: String, password: String): CouchDb = {
+    new CouchDb(host, port, https, (username, password).some)
   }
 
 }
