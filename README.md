@@ -440,6 +440,22 @@ and
 for more details and examples.
 
 
+### Authentication
+
+At the moment, the client supports only the [basic
+authentication](http://docs.couchdb.org/en/1.6.1/api/server/authn.html#basic-authentication)
+method. To use it, just pass your username and password to the `CouchDb` factor:
+
+```Scala
+val couch = CouchDb("127.0.0.1", 6984, https = true, "username", "password")
+```
+
+Please note that [enabling
+HTTPS](http://docs.couchdb.org/en/1.6.1/config/http.html#config-ssl) is
+recommended to avoid sending your credentials in plain text. The default CouchDB
+HTTPS port is 6984.
+
+
 ### Complete example
 
 Here is a basic example of an application that stores a set of case class
