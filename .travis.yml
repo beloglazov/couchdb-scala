@@ -6,14 +6,3 @@ jdk:
   - openjdk7
 services:
   - couchdb
-before_script:
-  - sudo mkdir /etc/couchdb/cert
-  - cd /etc/couchdb/cert
-  - sudo openssl genrsa > privkey.pem
-  - sudo openssl req -new -x509 -key privkey.pem -out couchdb.pem -days 1095
-  - sudo chmod 600 privkey.pem couchdb.pem
-  - sudo chown couchdb privkey.pem couchdb.pem
-  - sudo sed -i 's/;httpsd/httpsd/' local.ini
-  - sudo sed -i 's/;cert_file = .*/cert_file = \/etc\/couchdb\/cert\/couchdb.pem/' local.ini
-  - sudo sed -i 's/;key_file = .*/key_file = \/etc\/couchdb\/cert\/privkey.pem/' local.ini
-  - sudo service couchdb restart

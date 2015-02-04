@@ -24,8 +24,8 @@ class BasicAuthSpec extends CouchDbSpecification {
   val couch      = CouchDb(SpecConfig.couchDbHost, SpecConfig.couchDbPort)
   val couchAdmin = CouchDb(
     SpecConfig.couchDbHost,
-    SpecConfig.couchDbHttpsPort,
-    https = true,
+    SpecConfig.couchDbPort,
+    https = false,
     SpecConfig.couchDbUsername,
     SpecConfig.couchDbPassword)
 
