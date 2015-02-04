@@ -444,7 +444,8 @@ for more details and examples.
 
 At the moment, the client supports only the [basic
 authentication](http://docs.couchdb.org/en/1.6.1/api/server/authn.html#basic-authentication)
-method. To use it, just pass your username and password to the `CouchDb` factor:
+method. To use it, just pass your username and password to the `CouchDb`
+factory:
 
 ```Scala
 val couch = CouchDb("127.0.0.1", 6984, https = true, "username", "password")
