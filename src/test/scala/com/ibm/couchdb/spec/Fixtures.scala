@@ -16,8 +16,8 @@
 
 package com.ibm.couchdb.spec
 
+import com.ibm.couchdb.Lenses._
 import com.ibm.couchdb._
-import com.ibm.couchdb.model.Lenses._
 import monocle.macros.Lenser
 
 trait Fixtures {

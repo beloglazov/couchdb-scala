@@ -17,8 +17,6 @@
 package com.ibm.couchdb.core
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.implicits.UpickleImplicits
-import com.ibm.couchdb.model.{Config, Res}
 import org.http4s.Http4s._
 import org.http4s.Method._
 import org.http4s._
@@ -30,7 +28,7 @@ import scodec.bits.ByteVector
 import scalaz.Scalaz._
 import scalaz.concurrent.Task
 
-class Client(config: Config) extends UpickleImplicits {
+class Client(config: Config) {
 
   type R[T] = upickle.Reader[T]
   type W[T] = upickle.Writer[T]
@@ -41,7 +39,7 @@ class Client(config: Config) extends UpickleImplicits {
 
   val baseHeaders = config.credentials match {
     case Some(x) => Headers(Authorization(BasicCredentials(x._1, x._2)))
-    case None    => Headers()
+    case None => Headers()
   }
 
   val baseUri = Uri(

@@ -16,7 +16,7 @@
 
 package com.ibm.couchdb.implicits
 
-import com.ibm.couchdb.model.Res
+import com.ibm.couchdb.Res
 
 import scalaz.concurrent.Task
 

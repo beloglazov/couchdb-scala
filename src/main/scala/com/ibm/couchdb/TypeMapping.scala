@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb
 
-trait TypeMappingWrapper {
+final class TypeMapping private(val types: Map[String, String])
 
-  final class TypeMapping private(val types: Map[String, String])
+object TypeMapping {
 
-  object TypeMapping {
+  val empty = new TypeMapping(Map.empty[String, String])
 
-    def apply(mapping: (Class[_], String)*): TypeMapping = {
-      new TypeMapping(
-        mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
-    }
-
-    val empty = new TypeMapping(Map.empty[String, String])
-
+  def apply(mapping: (Class[_], String)*): TypeMapping = {
+    new TypeMapping(
+      mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
   }
 
 }
+

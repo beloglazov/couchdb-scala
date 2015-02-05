@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb
 
-import com.ibm.couchdb._
+import monocle.Lens
+import monocle.macros.Lenser
 
-object Req {
+object Lenses {
 
-  case class Docs[T](docs: Seq[CouchDoc[T]])
-
-  case class DocKeys[T](keys: Seq[T])
+  def _couchDoc[T]: Lens[CouchDoc[T], T] = Lenser[CouchDoc[T]](_.doc)
 
 }

@@ -21,7 +21,6 @@ import java.nio.file.{Files, Paths}
 import com.ibm.couchdb._
 import com.ibm.couchdb.api.builders.{GetDocumentQueryBuilder, GetManyDocumentsQueryBuilder}
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.model._
 import org.http4s.Status
 
 import scalaz.concurrent.Task

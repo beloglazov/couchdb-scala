@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb
 
-import com.ibm.couchdb._
 import org.http4s.Status
 
 import scalaz.concurrent.Task

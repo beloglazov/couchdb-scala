@@ -16,8 +16,8 @@
 
 package com.ibm.couchdb.api
 
+import com.ibm.couchdb.Res
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.model.Res
 import org.http4s.Status
 
 import scalaz.concurrent.Task

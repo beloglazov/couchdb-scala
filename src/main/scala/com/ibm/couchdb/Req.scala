@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package com.ibm.couchdb.model
+package com.ibm.couchdb
 
-case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
+object Req {
 
+  case class Docs[T](docs: Seq[CouchDoc[T]])
+
+  case class DocKeys[T](keys: Seq[T])
+
+}
