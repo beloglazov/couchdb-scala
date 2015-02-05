@@ -1,10 +1,14 @@
+import SonatypeKeys._
+
 sonatypeSettings
+
+profileName := "com.ibm.couchdb-scala"
 
 organization := "com.ibm"
 
 name := "couchdb-scala"
 
-version := "0.5.0-SNAPSHOT"
+version := "0.5.0"
 
 scalaVersion := "2.11.5"
 
@@ -97,10 +101,6 @@ publishMavenStyle := true
 publishArtifact in Test := false
 
 pomExtra := {
-    <organization>
-      <name>IBM Corporation</name>
-      <url>http://www.ibm.com</url>
-    </organization>
     <scm>
       <connection>scm:git:git@github.com:beloglazov/couchdb-scala.git</connection>
       <developerConnection>scm:git:git@github.com:beloglazov/couchdb-scala.git</developerConnection>
