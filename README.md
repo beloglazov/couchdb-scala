@@ -6,11 +6,11 @@ This is a purely functional Scala client for
 [CouchDB](http://couchdb.apache.org/). The design goals are compositionality,
 expressiveness, type-safety, and ease of use.
 
-It's based on the following awesome libraries:
+It's based on these awesome libraries:
 [Scalaz](https://github.com/scalaz/scalaz),
 [Http4s](https://github.com/http4s/http4s),
-[uPickle](https://github.com/lihaoyi/upickle),
-[Monocle](https://github.com/julien-truffaut/Monocle), etc.
+[uPickle](https://github.com/lihaoyi/upickle), and
+[Monocle](https://github.com/julien-truffaut/Monocle).
 
 
 ## Getting started
