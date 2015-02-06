@@ -1,4 +1,4 @@
-# couchdb-scala
+# CouchDB-Scala
 
 [![Build Status](https://travis-ci.org/beloglazov/couchdb-scala.svg?branch=master)](https://travis-ci.org/beloglazov/couchdb-scala)
 
@@ -253,7 +253,7 @@ other operations, to see their usage examples please refer to
 The Documents API implements operations for creating, querying, modifying, and
 deleting documents and their attachments. At this stage, it's time to discuss
 how Scala objects are represented in CouchDB and what `TypeMapping` is used for.
-One of the design goals of `couchdb-scala` is to make it as easy as possible to
+One of the design goals of `CouchDB-Scala` is to make it as easy as possible to
 store and retrieve documents by automating the process of serialization and
 deserialization to and from JSON. This functionality is based on
 [uPickle](https://github.com/lihaoyi/upickle), which uses macros to
