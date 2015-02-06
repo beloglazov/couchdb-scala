@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/beloglazov/couchdb-scala.svg?branch=master)](https://travis-ci.org/beloglazov/couchdb-scala)
 
-This is a Scala library providing a purely functional client for
+This is a purely functional Scala client for
 [CouchDB](http://couchdb.apache.org/). The design goals are compositionality,
 expressiveness, type-safety, and ease of use.
 
@@ -10,7 +10,16 @@ It's based on the following awesome libraries:
 [Scalaz](https://github.com/scalaz/scalaz),
 [Http4s](https://github.com/http4s/http4s),
 [uPickle](https://github.com/lihaoyi/upickle),
-[Monocle](https://github.com/julien-truffaut/Monocle), and others.
+[Monocle](https://github.com/julien-truffaut/Monocle), etc.
+
+
+## Getting started
+
+Add the following dependency to your SBT config:
+
+```Scala
+libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.5.0"
+```
 
 
 ## Tutorial
@@ -89,7 +98,7 @@ generate a UUID, you just need to call `couch.server.mkUuid`, which returns
 `Task[String]`. To generate `n` UUIDs, call `couch.server.mkUuids(n)`, which
 returns `Task[Seq[String]]` representing a task of generating a sequence of `n`
 UUIDs. For more usage examples, please refer to
-[ServerSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/ServerSpec.scala).
+[ServerSpec](src/test/scala/com/ibm/couchdb/api/ServerSpec.scala).
 
 
 ### Databases API
@@ -119,7 +128,7 @@ to delete a database, `dbs.get("awesome-database")` to get information about a
 database returned as an instance of `DbInfo` case class that includes such
 fields as data size, number of documents in the database, etc. For some examples
 of using the databases API, please refer to
-[DatabasesSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/DatabasesSpec.scala).
+[DatabasesSpec](src/test/scala/com/ibm/couchdb/api/DatabasesSpec.scala).
 
 
 ### Design API
@@ -236,7 +245,7 @@ Here, we use a for-comprehension to chain 2 monadic actions. If both actions
 succeed, we get a `Res.DocOk` object as a result containing the new revision of
 the design document stored in the `_rev` field. The Design API supports a few
 other operations, to see their usage examples please refer to
-[DesignSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/DesignSpec.scala).
+[DesignSpec](src/test/scala/com/ibm/couchdb/api/DesignSpec.scala).
 
 
 ### Documents API
@@ -377,7 +386,7 @@ endpoint. This query builder can accessed through `db.docs.get`.
 There are other operations provided by the Documents API, such as updating
 documents, deleting documents, adding attachments, retrieving attachments, etc.
 For more usage examples, please refer to
-[DocumentsSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/DocumentsSpec.scala).
+[DocumentsSpec](src/test/scala/com/ibm/couchdb/api/DocumentsSpec.scala).
 
 
 ### Query API
@@ -417,7 +426,7 @@ This returns an instance of `Task[CouchDocs[String, Int, Person]]`, which once
 executed results in a sequence of objects encapsulating the metadata about the
 documents (`id`, `key`, `value`, `offset`, `total_rows`) and the corresponding
 `Person` objects. Please follow the definitions of case classes in
-[CouchModel](https://github.com/beloglazov/couchdb-scala/blob/master/src/main/scala/com/ibm/couchdb/model/CouchModel.scala)
+[CouchModel](src/main/scala/com/ibm/couchdb/model/CouchModel.scala)
 to fully understand the structure of the returned objects.
 
 It's also possible to only get the documents from a view that match the
@@ -430,13 +439,13 @@ ageView.query(Seq("Alice", "Carl"))
 
 This return an instance of `Task[CouchDocsMeta[String, Int]]`. For other usage
 examples of the view Query API, please refer to
-[QueryViewSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/QueryViewSpec.scala).
+[QueryViewSpec](src/test/scala/com/ibm/couchdb/api/QueryViewSpec.scala).
 
 The APIs for querying shows and lists are structured similarly to view querying
 and follow the official CouchDB specification. Please refer to
-[QueryShowSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/QueryShowSpec.scala)
+[QueryShowSpec](src/test/scala/com/ibm/couchdb/api/QueryShowSpec.scala)
 and
-[QueryListSpec](https://github.com/beloglazov/couchdb-scala/blob/master/src/test/scala/com/ibm/couchdb/api/QueryListSpec.scala)
+[QueryListSpec](src/test/scala/com/ibm/couchdb/api/QueryListSpec.scala)
 for more details and examples.
 
 
@@ -512,6 +521,33 @@ sbt "run-main com.ibm.couchdb.examples.Basic"
 ```
 
 
+## Mailing list
+
+Please feel free to join our mailing list, we welcome all questions and
+suggestions: https://groups.google.com/forum/#!forum/couchdb-scala
+
+
+## Contributing
+
+We welcome contributions, but request you follow these guidelines. Please raise
+any bug reports on the project's [issue
+tracker](https://github.com/beloglazov/couchdb-scala/issues).
+
+In order for us to accept pull-requests, the contributor must first complete a
+Contributor License Agreement (CLA). This clarifies the intellectual property
+license granted with any contribution. It is for your protection as a
+Contributor as well as the protection of IBM and its customers; it does not
+change your rights to use your own Contributions for any other purpose.
+
+You can download the CLAs here:
+
+  - [individual](cla/cla-individual.pdf)
+  - [corporate](cla/cla-corporate.pdf)
+
+If you are an IBMer, please contact us directly as the contribution process is
+slightly different.
+
+
 ## Author
 
 The project has been developed by [Anton Beloglazov](http://beloglazov.info/).
@@ -521,4 +557,5 @@ For more open-source projects from IBM, head over to (http://ibm.github.io).
 
 ## Copyright and license
 
-© Copyright 2015 IBM Corporation. Distributed under the [Apache 2.0 license](LICENSE).
+© Copyright 2015 IBM Corporation. Distributed under the [Apache 2.0
+license](LICENSE).
