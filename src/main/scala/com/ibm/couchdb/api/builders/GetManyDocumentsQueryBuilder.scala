@@ -86,18 +86,18 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set(key, value.toString)
   }
 
-  def query: Task[CouchDocsMeta[String, CouchDocRev]] = {
-    client.get[CouchDocsMeta[String, CouchDocRev]](
+  def query: Task[CouchKeyVals[String, CouchDocRev]] = {
+    client.get[CouchKeyVals[String, CouchDocRev]](
       s"/$db/_all_docs",
       Status.Ok,
       params.toSeq)
   }
 
-  def query(ids: Seq[String]): Task[CouchDocsMeta[String, CouchDocRev]] = {
+  def query(ids: Seq[String]): Task[CouchKeyVals[String, CouchDocRev]] = {
     if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[CouchDocsMeta[String, CouchDocRev]]
+      Res.Error("not_found", "No IDs specified").toTask[CouchKeyVals[String, CouchDocRev]]
     else
-      client.post[Req.DocKeys[String], CouchDocsMeta[String, CouchDocRev]](
+      client.post[Req.DocKeys[String], CouchKeyVals[String, CouchDocRev]](
         s"/$db/_all_docs",
         Status.Ok,
         Req.DocKeys(ids),

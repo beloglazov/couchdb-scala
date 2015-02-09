@@ -32,13 +32,13 @@ case class CouchDoc[T](doc: T,
 
 case class CouchDocRev(rev: String)
 
-case class CouchDocMeta[K, V](id: String, key: K, value: V)
+case class CouchKeyVal[K, V](id: String, key: K, value: V)
 
-case class CouchDocMetaWithDoc[K, V, D](id: String, key: K, value: V, doc: CouchDoc[D])
+case class CouchKeyValWithDoc[K, V, D](id: String, key: K, value: V, doc: CouchDoc[D])
 
-case class CouchDocsMeta[K, V](offset: Int, total_rows: Int, rows: Seq[CouchDocMeta[K, V]])
+case class CouchKeyVals[K, V](offset: Int, total_rows: Int, rows: Seq[CouchKeyVal[K, V]])
 
-case class CouchDocs[K, V, D](offset: Int, total_rows: Int, rows: Seq[CouchDocMetaWithDoc[K, V, D]]) {
+case class CouchDocs[K, V, D](offset: Int, total_rows: Int, rows: Seq[CouchKeyValWithDoc[K, V, D]]) {
   def getDocs: Seq[CouchDoc[D]] = rows.map(_.doc)
 
   def getDocsData: Seq[D] = rows.map(_.doc.doc)
@@ -52,7 +52,7 @@ case class CouchAttachment(content_type: String,
                            stub: Boolean = false) {
   private val decoder = new BASE64Decoder()
 
-  def getDataAsBytes: Array[Byte] = decoder.decodeBuffer(data)
+  def toBytes: Array[Byte] = decoder.decodeBuffer(data)
 }
 
 case class CouchView(map: String, reduce: String = "")

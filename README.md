@@ -408,10 +408,10 @@ now use this query builder to retrieve all the documents from the view:
 ageView.query
 ```
 
-This method call returns an instance of `Task[CouchDocsMeta[String, Int]]`.
+This method call returns an instance of `Task[CouchKeyVals[String, Int]]`.
 Since we haven't specified the `include_docs` option, this query only retrieves
-metadata on the documents, which is basically a sequence of document IDs, keys,
-and values emitted by the view's map function. This method makes a call to the
+a sequence of document IDs, keys, and values emitted by the view's map function.
+This method makes a call to the
 [/{db}/_design/{ddoc}/_view/{view}](http://docs.couchdb.org/en/1.6.1/api/ddoc/views.html#get--db-_design-ddoc-_view-view)
 endpoint, and the builder supports all the relevant options.
 
@@ -437,7 +437,7 @@ Carl:
 ageView.query(Seq("Alice", "Carl"))
 ```
 
-This return an instance of `Task[CouchDocsMeta[String, Int]]`. For other usage
+This return an instance of `Task[CouchKeyVals[String, Int]]`. For other usage
 examples of the view Query API, please refer to
 [QueryViewSpec](src/test/scala/com/ibm/couchdb/api/QueryViewSpec.scala).
 

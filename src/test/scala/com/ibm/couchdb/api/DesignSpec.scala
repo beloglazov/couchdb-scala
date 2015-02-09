@@ -136,7 +136,7 @@ class DesignSpec extends CouchDbSpecification {
       attachment.length mustEqual -1
       attachment.stub mustEqual false
       attachment.digest must not be empty
-      attachment.getDataAsBytes mustEqual fixAttachmentData
+      attachment.toBytes mustEqual fixAttachmentData
     }
 
     "Delete an attachment to a design" >> {

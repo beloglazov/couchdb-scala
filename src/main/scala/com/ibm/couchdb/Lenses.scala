@@ -16,11 +16,11 @@
 
 package com.ibm.couchdb
 
-import monocle.Lens
-import monocle.macros.Lenser
+import monocle.PLens
 
 object Lenses {
 
-  def _couchDoc[T]: Lens[CouchDoc[T], T] = Lenser[CouchDoc[T]](_.doc)
+  def _couchDoc[A, B]: PLens[CouchDoc[A], CouchDoc[B], A, B] =
+    PLens[CouchDoc[A], CouchDoc[B], A, B](_.doc)(d => cd => cd.copy(doc = d))
 
 }

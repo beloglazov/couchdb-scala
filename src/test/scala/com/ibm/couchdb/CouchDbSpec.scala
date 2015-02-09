@@ -36,7 +36,7 @@ class CouchDbSpec extends CouchDbSpecification {
 
     "Create and query 2 DBs" >> {
 
-      def testDb(dbName: String): MatchResult[Seq[CouchDocMeta[String, String]]] = {
+      def testDb(dbName: String): MatchResult[Seq[CouchKeyVal[String, String]]] = {
         await(couch.dbs.delete(dbName))
         val error = awaitLeft(couch.dbs.delete(dbName))
         error.error mustEqual "not_found"

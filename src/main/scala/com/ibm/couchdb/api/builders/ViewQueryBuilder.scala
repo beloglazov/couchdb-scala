@@ -31,7 +31,7 @@ case class ViewQueryBuilder[K, V](client: Client,
                                   kr: upickle.Reader[K],
                                   kw: upickle.Writer[K],
                                   vr: upickle.Reader[V],
-                                  cdr: upickle.Reader[CouchDocsMeta[K, V]],
+                                  cdr: upickle.Reader[CouchKeyVals[K, V]],
                                   dkw: upickle.Writer[Req.DocKeys[K]]) {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
@@ -114,18 +114,18 @@ case class ViewQueryBuilder[K, V](client: Client,
     set(key, value.toString)
   }
 
-  def query: Task[CouchDocsMeta[K, V]] = {
-    client.get[CouchDocsMeta[K, V]](
+  def query: Task[CouchKeyVals[K, V]] = {
+    client.get[CouchKeyVals[K, V]](
       s"/$db/_design/$design/_view/$view",
       Status.Ok,
       params.toSeq)
   }
 
-  def query(keys: Seq[K]): Task[CouchDocsMeta[K, V]] = {
+  def query(keys: Seq[K]): Task[CouchKeyVals[K, V]] = {
     if (keys.isEmpty)
-      Res.Error("not_found", "No keys specified").toTask[CouchDocsMeta[K, V]]
+      Res.Error("not_found", "No keys specified").toTask[CouchKeyVals[K, V]]
     else
-      client.post[Req.DocKeys[K], CouchDocsMeta[K, V]](
+      client.post[Req.DocKeys[K], CouchKeyVals[K, V]](
         s"/$db/_design/$design/_view/$view",
         Status.Ok,
         Req.DocKeys(keys),
