@@ -50,9 +50,9 @@ Apache Couch Db version **1.6**
 | Delete design document attachment  |	`/{db}/_design/{des_doc}/{att_name}`	| &#10003; | 0.5 |[view](https://github.com/beloglazov/couchdb-scala/blob/5b2e78838c53d1e21a47e3ef8c42d0cc5bb1dcae/src/test/scala/com/ibm/couchdb/api/DesignSpec.scala#L77-82)|
 | Execute specified view function from the specified design document | `/{db}/_design/{des_doc}/_view/{view_name}` |  &#10003; | 0.5 | [view](https://github.com/beloglazov/couchdb-scala/blob/5b2e78838c53d1e21a47e3ef8c42d0cc5bb1dcae/src/test/scala/com/ibm/couchdb/api/QueryViewSpec.scala)|
 | Applies show function for specified documents| `/{db}/_design/{des_doc} /_show/{show_name}/{doc_id}` |  &#10003; | 0.5 | [view](https://github.com/beloglazov/couchdb-scala/blob/5b2e78838c53d1e21a47e3ef8c42d0cc5bb1dcae/src/test/scala/com/ibm/couchdb/api/QueryShowSpec.scala)|
-| Applies list function for the view function from the same design document | `{/db}/_design/{des_doc} /_list/{list_name}/{view_name}` |  &#10003; | 0.5 | [view](https://github.com/beloglazov/couchdb-scala/blob/5b2e78838c53d1e21a47e3ef8c42d0cc5bb1dcae/src/test/scala/com/ibm/couchdb/api/QueryListSpec.scala)|
-| Applies list function for the view function from another design document | `{/db}/_design/{des_doc} / _list/{list_name}/{other_design_doc}` /{view_name}| | | |
-| Rewrite the specified path by rules in specified design document | `{/db}/_design/{des-doc}/_rewrite/path` | | | |
+| Applies list function for the view function from the same design document | `/{db}/_design/{des_doc} /_list/{list_name}/{view_name}` |  &#10003; | 0.5 | [view](https://github.com/beloglazov/couchdb-scala/blob/5b2e78838c53d1e21a47e3ef8c42d0cc5bb1dcae/src/test/scala/com/ibm/couchdb/api/QueryListSpec.scala)|
+| Applies list function for the view function from another design document | `/{db}/_design/{des_doc} / _list/{list_name}/{other_design_doc}/{view_name}`| | | |
+| Rewrite the specified path by rules in specified design document | `/{db}/_design/{des-doc}/_rewrite/path` | | | |
 |**Local Documents**|||||
 | Get local document  | `/{db}/_local/{doc_id}` |   |  | |
 | Store local document  | `/{db}/_local/{doc_id}` |   |  | |
