@@ -37,7 +37,7 @@ class Client(config: Config) {
 
   val client = PooledHttp1Client()
 
-  val baseHeaders           = config.credentials match {
+  val baseHeaders = config.credentials match {
     case Some(x) => Headers(Authorization(BasicCredentials(x._1, x._2)))
     case None => Headers()
   }
@@ -62,7 +62,7 @@ class Client(config: Config) {
       if (response.status == expectedStatus) {
         Task.now(response)
       } else {
-        log.warn(s"Unexpected response status ${ response.status }, expected $expectedStatus")
+        log.warn(s"Unexpected response status ${response.status}, expected $expectedStatus")
         for {
           responseBody <- response.as[String]
           requestBody <- EntityDecoder.decodeString(request)

@@ -127,7 +127,7 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.get[FixPerson](created1.id)).doc mustEqual fixHaile
 
       val created2 = awaitRight(documents.createMany[FixPerson](Seq(fixHaile, fixMagritte)))
-      val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson](Seq(created2.head.id, created2(1).id)))
+      val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson](created2.map(_.id)))
       docs.getDocs.map(_.doc) mustEqual Seq(fixHaile, fixMagritte)
     }
 
