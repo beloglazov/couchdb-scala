@@ -68,7 +68,6 @@ class DocumentsSpec extends CouchDbSpecification {
       checkDocOk(res(1))
     }
 
-
     "Get all documents" >> {
       clear()
       val created1 = awaitRight(documents.create(fixAlice))
@@ -236,7 +235,9 @@ class DocumentsSpec extends CouchDbSpecification {
         val newIds = awaitRight(documents.createMany(x)).map(_.id)
         awaitRight(documents.getMany[FixPerson](newIds)).getDocs
       }
-      def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] = orig.map(x => x applyLens _docPersonName modify change)
+      def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] =
+        orig.map(x => x applyLens _docPersonName modify change)
+
       def createAndModify = create _ andThen modify
 
       "update all documents when valid Ids and Rev" >> {
