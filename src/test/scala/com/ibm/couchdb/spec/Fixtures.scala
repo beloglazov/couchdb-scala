@@ -32,9 +32,11 @@ trait Fixtures {
   val _docPersonName = _couchDoc composeLens _personName
   val _docPersonAge  = _couchDoc composeLens _personAge
 
-  val fixAlice = FixPerson("Alice", 25)
-  val fixBob   = FixPerson("Bob", 30)
-  val fixCarl  = FixPerson("Carl", 20)
+  val fixAlice    = FixPerson("Alice", 25)
+  val fixBob      = FixPerson("Bob", 30)
+  val fixCarl     = FixPerson("Carl", 20)
+  val fixHaile    = FixPerson("\u1283\u12ED\u120C \u1308\u1265\u1228\u1225\u120B\u1234", 42)
+  val fixMagritte = FixPerson("Ren\u00E9 Magritte", 68)
 
   object FixViews {
     val names    = "names"

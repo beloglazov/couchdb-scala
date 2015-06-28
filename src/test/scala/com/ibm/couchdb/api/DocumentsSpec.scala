@@ -119,6 +119,16 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.getDocsData mustEqual Seq(fixAlice, fixCarl)
     }
 
+    "Get a document containing unicode values" >> {
+      clear()
+      val created1 = awaitRight(documents.create[FixPerson](fixHaile))
+      awaitRight(documents.get[FixPerson](created1.id)).doc mustEqual fixHaile
+
+      val created2 = awaitRight(documents.createMany[FixPerson](Seq(fixHaile, fixMagritte)))
+      val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson](created2.map(_.id)))
+      docs.getDocs.map(_.doc) mustEqual Seq(fixHaile, fixMagritte)
+    }
+
     "Update a document" >> {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
@@ -163,8 +173,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(documents.attach(aliceRes, fixAttachmentName, fixAttachmentData))
-      val url = s"http://${ SpecConfig.couchDbHost }:${ SpecConfig.couchDbPort }" +
-        s"/${ db }/${ aliceRes._id }/${ fixAttachmentName }"
+      val url = s"http://${SpecConfig.couchDbHost}:${SpecConfig.couchDbPort}" +
+        s"/${db}/${aliceRes._id}/${fixAttachmentName}"
       awaitRight(documents.getAttachmentUrl(aliceRes, fixAttachmentName)) mustEqual url
       awaitRight(documents.getAttachment(aliceRes, fixAttachmentName)) mustEqual fixAttachmentData
     }
@@ -216,6 +226,6 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitError(documents.getAttachment(aliceRes, fixAttachmentName), "not_found")
     }
 
-  }
 
+  }
 }

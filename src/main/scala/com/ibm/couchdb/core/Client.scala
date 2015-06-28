@@ -41,6 +41,7 @@ class Client(config: Config) {
     case Some(x) => Headers(Authorization(BasicCredentials(x._1, x._2)))
     case None => Headers()
   }
+  val baseHeadersWithAccept = baseHeaders.put(Header("Accept", "application/json; charset=utf-8"))
 
   val baseUri = Uri(
     scheme = CaseInsensitiveString(if (config.https) "https" else "http").some,
@@ -61,7 +62,7 @@ class Client(config: Config) {
       if (response.status == expectedStatus) {
         Task.now(response)
       } else {
-        log.warn(s"Unexpected response status ${ response.status }, expected $expectedStatus")
+        log.warn(s"Unexpected response status ${response.status}, expected $expectedStatus")
         for {
           responseBody <- response.as[String]
           requestBody <- EntityDecoder.decodeString(request)
@@ -91,7 +92,7 @@ class Client(config: Config) {
     val request = Request(
       method = GET,
       uri = url(resource, params),
-      headers = baseHeaders.put(Header("Accept", "application/json")))
+      headers = baseHeadersWithAccept)
     req(request, expectedStatus).as[String]
   }
 
@@ -101,7 +102,7 @@ class Client(config: Config) {
     val request = Request(
       method = GET,
       uri = url(resource, params),
-      headers = baseHeaders.put(Header("Accept", "application/json")))
+      headers = baseHeadersWithAccept)
     reqAndRead[T](request, expectedStatus)
   }
 
@@ -116,7 +117,6 @@ class Client(config: Config) {
                         expectedStatus: Status,
                         entity: EntityEncoder.Entity,
                         contentType: String): Task[T] = {
-    val baseHeadersWithAccept = baseHeaders.put(Header("Accept", "application/json"))
     val headers =
       if (!contentType.isEmpty) baseHeadersWithAccept.put(Header("Content-Type", contentType))
       else baseHeadersWithAccept
@@ -153,8 +153,7 @@ class Client(config: Config) {
       val request = Request(
         method = POST,
         uri = url(resource, params),
-        headers = baseHeaders.put(
-          Header("Accept", "application/json"),
+        headers = baseHeadersWithAccept.put(
           Header("Content-Type", "application/json")),
         body = entity.body)
       reqAndRead[T](request, expectedStatus)
@@ -165,7 +164,7 @@ class Client(config: Config) {
     val request = Request(
       method = DELETE,
       uri = url(resource),
-      headers = baseHeaders.put(Header("Accept", "application/json")))
+      headers = baseHeadersWithAccept)
     reqAndRead[T](request, expectedStatus)
   }
 
