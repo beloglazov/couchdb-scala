@@ -16,6 +16,7 @@
 
 package com.ibm.couchdb.api
 
+import com.ibm.couchdb.CouchDoc
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import monocle.syntax._
 import org.http4s.Status
@@ -226,6 +227,73 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitError(documents.getAttachment(aliceRes, fixAttachmentName), "not_found")
     }
 
+    "Bulk update should" >> {
+      val fixes = Seq(fixAlice, fixBob, fixHaile)
+      def change(s: String) = s + "-updated"
+      def create(x: Seq[FixPerson]): Seq[CouchDoc[FixPerson]] = {
+        clear()
+        val newIds = awaitRight(documents.createMany(x)).map(_.id)
+        awaitRight(documents.getMany[FixPerson](newIds)).getDocs
+      }
+      def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] =
+        orig.map(x => x applyLens _docPersonName modify change)
 
+      def createAndModify = create _ andThen modify
+
+      "update all documents when valid Ids and Rev" >> {
+        val modified = createAndModify(fixes)
+        val updatedDocs = awaitRight(documents.updateMany(modified)).map(_.id)
+        updatedDocs.size mustEqual fixes.size
+
+        val updateDocs = awaitRight(documents.getMany[FixPerson](modified.map(_._id)))
+        updateDocs.getDocs.map(_.doc) mustEqual fixes.map(x => FixPerson(change(x.name), age = x.age))
+      }
+
+      "fail if one or more elements is missing Id" >> {
+        val modified = createAndModify(fixes)
+        val withInvalidId = modified.updated(2, modified(2).copy(_id = ""))
+        awaitError(documents.updateMany(withInvalidId), "cannot_update")
+        awaitRight(documents.getMany[FixPerson](modified.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+      }
+
+      "fail if one or more elements is missing Rev" >> {
+        val modified = createAndModify(fixes)
+        val withInvalidRev = modified.updated(1, modified(1).copy(_rev = ""))
+        awaitError(documents.updateMany(withInvalidRev), "cannot_update")
+        awaitRight(documents.getMany[FixPerson](modified.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+      }
+    }
+
+    "Bulk delete should" >> {
+      val fixes = Seq(fixAlice, fixBob, fixHaile)
+      def create(x: Seq[FixPerson]): Seq[CouchDoc[FixPerson]] = {
+        clear()
+        val newIds = awaitRight(documents.createMany(x)).map(_.id)
+        awaitRight(documents.getMany[FixPerson](newIds)).getDocs
+      }
+
+      "delete all documents" >> {
+        val created = create(fixes)
+        val deleted = awaitRight(documents.deleteMany(created)).map(_.id)
+        deleted.size mustEqual fixes.size
+        val getDeleted = awaitRight(documents.getMany[FixPerson](created.map(_._id)))
+        getDeleted.getDocs.size mustEqual fixes.size
+        getDeleted.getDocs.count(_ != null) mustEqual 0
+      }
+
+      "fail if one or more elements is missing an Id" >> {
+        val created = create(fixes)
+        val withInvalidId = created.updated(1, created(1).copy(_id = ""))
+        awaitError(documents.deleteMany(withInvalidId), "cannot_update")
+        awaitRight(documents.getMany[FixPerson](created.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+      }
+
+      "fail if one or more elements is missing a Rev" >> {
+        val created = create(fixes)
+        val withInvalidRev = created.updated(2, created(2).copy(_id = ""))
+        awaitError(documents.deleteMany(withInvalidRev), "cannot_update")
+        awaitRight(documents.getMany[FixPerson](created.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+      }
+    }
   }
 }
