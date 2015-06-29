@@ -8,7 +8,7 @@ organization := "com.ibm"
 
 name := "couchdb-scala"
 
-version := "0.5.2-SNAPSHOT"
+version := "0.5.2"
 
 scalaVersion := "2.11.5"
 
