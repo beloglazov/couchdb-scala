@@ -25,9 +25,9 @@ class Query(client: Client, db: String) {
 
   def view[K, V](design: String, view: String)
                 (implicit
-                 kr: upickle.Reader[K],
-                 kw: upickle.Writer[K],
-                 vr: upickle.Reader[V]): Option[ViewQueryBuilder[K, V]] = {
+                 kr: upickle.default.Reader[K],
+                 kw: upickle.default.Writer[K],
+                 vr: upickle.default.Reader[V]): Option[ViewQueryBuilder[K, V]] = {
     if (design.isEmpty || view.isEmpty) none[ViewQueryBuilder[K, V]]
     else ViewQueryBuilder[K, V](client, db, design, view).some
   }

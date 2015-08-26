@@ -36,8 +36,8 @@ case class ListQueryBuilder(client: Client,
     set("descending", descending)
   }
 
-  def endKey[T: upickle.Writer](endKey: T): ListQueryBuilder = {
-    set("endkey", upickle.write(endKey))
+  def endKey[T: upickle.default.Writer](endKey: T): ListQueryBuilder = {
+    set("endkey", upickle.default.write(endKey))
   }
 
   def endKeyDocId(endKeyDocId: String): ListQueryBuilder = {
@@ -56,8 +56,8 @@ case class ListQueryBuilder(client: Client,
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[T: upickle.Writer](key: T): ListQueryBuilder = {
-    set("key", upickle.write(key))
+  def key[T: upickle.default.Writer](key: T): ListQueryBuilder = {
+    set("key", upickle.default.write(key))
   }
 
   def limit(limit: Int): ListQueryBuilder = {
@@ -76,8 +76,8 @@ case class ListQueryBuilder(client: Client,
     set("stale", stale)
   }
 
-  def startKey[T: upickle.Writer](startKey: T): ListQueryBuilder = {
-    set("startkey", upickle.write(startKey))
+  def startKey[T: upickle.default.Writer](startKey: T): ListQueryBuilder = {
+    set("startkey", upickle.default.write(startKey))
   }
 
   def startKeyDocId(startKeyDocId: String): ListQueryBuilder = {

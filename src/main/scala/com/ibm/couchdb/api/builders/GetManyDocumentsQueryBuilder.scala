@@ -34,8 +34,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("descending", descending)
   }
 
-  def endKey[T: upickle.Writer](endKey: T): GetManyDocumentsQueryBuilder = {
-    set("endkey", upickle.write(endKey))
+  def endKey[S: upickle.default.Writer](endKey: S): GetManyDocumentsQueryBuilder = {
+    set("endkey", upickle.default.write(endKey))
   }
 
   def endKeyDocId(endKeyDocId: String): GetManyDocumentsQueryBuilder = {
@@ -50,8 +50,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[T: upickle.Writer](key: T): GetManyDocumentsQueryBuilder = {
-    set("key", upickle.write(key))
+  def key[S: upickle.default.Writer](key: S): GetManyDocumentsQueryBuilder = {
+    set("key", upickle.default.write(key))
   }
 
   def limit(limit: Int): GetManyDocumentsQueryBuilder = {
@@ -66,8 +66,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("stale", stale)
   }
 
-  def startKey[T: upickle.Writer](startKey: T): GetManyDocumentsQueryBuilder = {
-    set("startkey", upickle.write(startKey))
+  def startKey[S: upickle.default.Writer](startKey: S): GetManyDocumentsQueryBuilder = {
+    set("startkey", upickle.default.write(startKey))
   }
 
   def startKeyDocId(startKeyDocId: String): GetManyDocumentsQueryBuilder = {
@@ -104,14 +104,14 @@ case class GetManyDocumentsQueryBuilder(client: Client,
         params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader]: Task[CouchDocs[String, CouchDocRev, D]] = {
+  def queryIncludeDocs[D: upickle.default.Reader]: Task[CouchDocs[String, CouchDocRev, D]] = {
     client.get[CouchDocs[String, CouchDocRev, D]](
       s"/$db/_all_docs",
       Status.Ok,
       includeDocs().params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
+  def queryIncludeDocs[D: upickle.default.Reader](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask[CouchDocs[String, CouchDocRev, D]]
     else

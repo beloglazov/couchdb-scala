@@ -35,7 +35,7 @@ case class GetDocumentQueryBuilder(client: Client,
   }
 
   def attsSince(attsSince: Seq[String]): GetDocumentQueryBuilder = {
-    set("att_encoding_info", upickle.write(attsSince))
+    set("att_encoding_info", upickle.default.write(attsSince))
   }
 
   def conflicts(conflicts: Boolean = true): GetDocumentQueryBuilder = {
@@ -59,7 +59,7 @@ case class GetDocumentQueryBuilder(client: Client,
   }
 
   def openRevs(openRevs: Seq[String]): GetDocumentQueryBuilder = {
-    set("open_revs", upickle.write(openRevs))
+    set("open_revs", upickle.default.write(openRevs))
   }
 
   def openRevs(openRevs: String): GetDocumentQueryBuilder = {
@@ -86,11 +86,11 @@ case class GetDocumentQueryBuilder(client: Client,
     set(key, value.toString)
   }
 
-  def query[T: upickle.Reader](id: String): Task[CouchDoc[T]] = {
+  def query[S: upickle.default.Reader](id: String): Task[CouchDoc[S]] = {
     if (id.isEmpty)
-      Res.Error("not_found", "No ID specified").toTask[CouchDoc[T]]
+      Res.Error("not_found", "No ID specified").toTask[CouchDoc[S]]
     else
-      client.get[CouchDoc[T]](
+      client.get[CouchDoc[S]](
         s"/$db/$id",
         Status.Ok,
         params.toSeq)

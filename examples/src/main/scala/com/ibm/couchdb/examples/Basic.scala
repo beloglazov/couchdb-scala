@@ -56,7 +56,7 @@ object Basic extends App {
     // In case of an error (left side of Either), print it
     case -\/(e) => println(e)
     // In case of a success (right side of Either), print each object
-    case \/-(a) => a.map(println(_))
+    case \/-(a) => a.foreach(println(_))
   }
 
 }

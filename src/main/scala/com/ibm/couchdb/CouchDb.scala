@@ -55,5 +55,4 @@ object CouchDb {
   def apply(host: String, port: Int, https: Boolean, username: String, password: String): CouchDb = {
     new CouchDb(host, port, https, (username, password).some)
   }
-
 }

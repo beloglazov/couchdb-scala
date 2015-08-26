@@ -28,11 +28,11 @@ case class ViewQueryBuilder[K, V](client: Client,
                                   view: String,
                                   params: Map[String, String] = Map.empty[String, String])
                                  (implicit
-                                  kr: upickle.Reader[K],
-                                  kw: upickle.Writer[K],
-                                  vr: upickle.Reader[V],
-                                  cdr: upickle.Reader[CouchKeyVals[K, V]],
-                                  dkw: upickle.Writer[Req.DocKeys[K]]) {
+                                  kr: upickle.default.Reader[K],
+                                  kw: upickle.default.Writer[K],
+                                  vr: upickle.default.Reader[V],
+                                  cdr: upickle.default.Reader[CouchKeyVals[K, V]],
+                                  dkw: upickle.default.Writer[Req.DocKeys[K]]) {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -42,8 +42,8 @@ case class ViewQueryBuilder[K, V](client: Client,
     set("descending", descending)
   }
 
-  def endKey[T: upickle.Writer](endKey: T): ViewQueryBuilder[K, V] = {
-    set("endkey", upickle.write(endKey))
+  def endKey[T: upickle.default.Writer](endKey: T): ViewQueryBuilder[K, V] = {
+    set("endkey", upickle.default.write(endKey))
   }
 
   def endKeyDocId(endKeyDocId: String): ViewQueryBuilder[K, V] = {
@@ -74,8 +74,8 @@ case class ViewQueryBuilder[K, V](client: Client,
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[T: upickle.Writer](key: T): ViewQueryBuilder[K, V] = {
-    set("key", upickle.write(key))
+  def key[T: upickle.default.Writer](key: T): ViewQueryBuilder[K, V] = {
+    set("key", upickle.default.write(key))
   }
 
   def limit(limit: Int): ViewQueryBuilder[K, V] = {
@@ -94,8 +94,8 @@ case class ViewQueryBuilder[K, V](client: Client,
     set("stale", stale)
   }
 
-  def startKey[T: upickle.Writer](startKey: T): ViewQueryBuilder[K, V] = {
-    set("startkey", upickle.write(startKey))
+  def startKey[T: upickle.default.Writer](startKey: T): ViewQueryBuilder[K, V] = {
+    set("startkey", upickle.default.write(startKey))
   }
 
   def startKeyDocId(startKeyDocId: String): ViewQueryBuilder[K, V] = {
@@ -132,14 +132,14 @@ case class ViewQueryBuilder[K, V](client: Client,
         params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader]: Task[CouchDocs[K, V, D]] = {
+  def queryIncludeDocs[D: upickle.default.Reader]: Task[CouchDocs[K, V, D]] = {
     client.get[CouchDocs[K, V, D]](
       s"/$db/_design/$design/_view/$view",
       Status.Ok,
       includeDocs().params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader](keys: Seq[K]): Task[CouchDocs[K, V, D]] = {
+  def queryIncludeDocs[D: upickle.default.Reader](keys: Seq[K]): Task[CouchDocs[K, V, D]] = {
     if (keys.isEmpty)
       Res.Error("not_found", "No keys specified").toTask[CouchDocs[K, V, D]]
     else

@@ -24,14 +24,15 @@ import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
+import upickle.default.{Reader, Writer, read, write}
 
 import scalaz.Scalaz._
 import scalaz.concurrent.Task
 
 class Client(config: Config) {
 
-  type R[T] = upickle.Reader[T]
-  type W[T] = upickle.Writer[T]
+  type R[T] = Reader[T]
+  type W[T] = Writer[T]
 
   private val log = org.log4s.getLogger
 
@@ -66,7 +67,7 @@ class Client(config: Config) {
         for {
           responseBody <- response.as[String]
           requestBody <- EntityDecoder.decodeString(request)
-          errorRaw = upickle.read[Res.Error](responseBody)
+          errorRaw = read[Res.Error](responseBody)
           error = errorRaw.copy(
             status = response.status,
             request = request.toString,
@@ -83,7 +84,7 @@ class Client(config: Config) {
     for {
       response <- req(request, expectedStatus)
       asString <- response.as[String]
-    } yield upickle.read[T](asString)
+    } yield read[T](asString)
   }
 
   def getRaw(resource: String,
@@ -131,7 +132,7 @@ class Client(config: Config) {
   def put[B: W, T: R](resource: String,
                       expectedStatus: Status,
                       body: B): Task[T] = {
-    EntityEncoder[String].toEntity(upickle.write(body)) flatMap { entity =>
+    EntityEncoder[String].toEntity(write(body)) flatMap { entity =>
       put[T](resource, expectedStatus, entity, "")
     }
   }
@@ -149,7 +150,7 @@ class Client(config: Config) {
                        expectedStatus: Status,
                        body: B,
                        params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
-    EntityEncoder[String].toEntity(upickle.write(body)) flatMap { entity =>
+    EntityEncoder[String].toEntity(write(body)) flatMap { entity =>
       val request = Request(
         method = POST,
         uri = url(resource, params),
@@ -167,5 +168,4 @@ class Client(config: Config) {
       headers = baseHeadersWithAccept)
     reqAndRead[T](request, expectedStatus)
   }
-
 }
