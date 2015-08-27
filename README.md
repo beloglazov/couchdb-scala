@@ -18,7 +18,7 @@ It's based on these awesome libraries:
 Add the following dependency to your SBT config:
 
 ```Scala
-libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.5.1"
+libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.5.2"
 ```
 
 
