@@ -22,6 +22,7 @@ import com.ibm.couchdb._
 import com.ibm.couchdb.api.builders.{GetDocumentQueryBuilder, GetManyDocumentsQueryBuilder}
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
+import upickle.default.Aliases.{R, W}
 
 import scalaz.concurrent.Task
 
@@ -30,40 +31,40 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   val types  = typeMapping.types
   val server = new Server(client)
 
-  private def getClassName[S](obj: S): String = obj.getClass.getCanonicalName
+  private def getClassName[D](obj: D): String = obj.getClass.getCanonicalName
 
-  def create[S: upickle.default.Writer](obj: S): Task[Res.DocOk] = {
+  def create[D: W](obj: D): Task[Res.DocOk] = {
     server.mkUuid flatMap (create(obj, _))
   }
 
-  def create[S: upickle.default.Writer](obj: S, id: String): Task[Res.DocOk] = {
+  def create[D: W](obj: D, id: String): Task[Res.DocOk] = {
     val cl = getClassName(obj)
     if (!types.contains(cl))
       Res.Error("cannot_create", "No type mapping for " + cl + " available: " + types).toTask[Res.DocOk]
     else
-      client.put[CouchDoc[S], Res.DocOk](
+      client.put[CouchDoc[D], Res.DocOk](
         s"/$db/$id",
         Status.Created,
-        CouchDoc[S](obj, types(cl)))
+        CouchDoc[D](obj, types(cl)))
   }
 
-  private def postBulk[S: upickle.default.Writer](objs: Seq[CouchDoc[S]]): Task[Seq[Res.DocOk]] = {
-    client.post[Req.Docs[S], Seq[Res.DocOk]](
+  private def postBulk[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
+    client.post[Req.Docs[D], Seq[Res.DocOk]](
       s"/$db/_bulk_docs",
       Status.Created, Req.Docs(objs))
   }
 
-  def createMany[S: upickle.default.Writer](objs: Seq[S]): Task[Seq[Res.DocOk]] = {
+  def createMany[D: W](objs: Seq[D]): Task[Seq[Res.DocOk]] = {
     val classes = objs.map(getClassName(_))
     if (classes.exists(!types.contains(_))) {
       val missing = classes.find(!types.contains(_))
       Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
     } else
-      postBulk(objs.map(x => CouchDoc[S](x, types(getClassName(x)))))
+      postBulk(objs.map(x => CouchDoc[D](x, types(getClassName(x)))))
   }
 
-  def updateMany[S: upickle.default.Writer](objs: Seq[CouchDoc[S]]): Task[Seq[Res.DocOk]] = {
-    def invalidDoc(x: CouchDoc[S]): Boolean = x._id.isEmpty || x._rev.isEmpty
+  def updateMany[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
+    def invalidDoc(x: CouchDoc[D]): Boolean = x._id.isEmpty || x._rev.isEmpty
     objs.find(invalidDoc) match {
       case Some(doc) =>
         val missingField = if (doc._id.isEmpty) "an ID" else "a REV number"
@@ -72,33 +73,33 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     }
   }
 
-  def deleteMany[S: upickle.default.Writer](objs: Seq[CouchDoc[S]]): Task[Seq[Res.DocOk]] = {
+  def deleteMany[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
     updateMany(objs.map(_.copy(_deleted = true)))
   }
 
   def get: GetDocumentQueryBuilder = GetDocumentQueryBuilder(client, db)
 
-  def get[S: upickle.default.Reader](id: String): Task[CouchDoc[S]] = {
-    get.query[S](id)
+  def get[D: R](id: String): Task[CouchDoc[D]] = {
+    get.query[D](id)
   }
 
   def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db)
 
-  def getMany[S: upickle.default.Reader](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, S]] = {
-    getMany.queryIncludeDocs[S](ids)
+  def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
+    getMany.queryIncludeDocs[D](ids)
   }
 
-  def update[S: upickle.default.Writer](obj: CouchDoc[S]): Task[Res.DocOk] = {
+  def update[D: W](obj: CouchDoc[D]): Task[Res.DocOk] = {
     if (obj._id.isEmpty)
       Res.Error("cannot_update", "Document ID must not be empty").toTask[Res.DocOk]
     else
-      client.put[CouchDoc[S], Res.DocOk](
+      client.put[CouchDoc[D], Res.DocOk](
         s"/$db/${obj._id}",
         Status.Created,
         obj)
   }
 
-  def delete[S](obj: CouchDoc[S]): Task[Res.DocOk] = {
+  def delete[D](obj: CouchDoc[D]): Task[Res.DocOk] = {
     if (obj._id.isEmpty)
       Res.Error("cannot_delete", "Document ID must not be empty").toTask[Res.DocOk]
     else {
@@ -108,7 +109,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     }
   }
 
-  def attach[S](obj: CouchDoc[S],
+  def attach[D](obj: CouchDoc[D],
                 name: String,
                 data: Array[Byte],
                 contentType: String = ""): Task[Res.DocOk] = {
@@ -123,28 +124,28 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     }
   }
 
-  def attach[S](obj: CouchDoc[S], name: String, path: String): Task[Res.DocOk] = {
+  def attach[D](obj: CouchDoc[D], name: String, path: String): Task[Res.DocOk] = {
     readFile(path) flatMap {
       attachment => attach(obj, name, attachment)
     }
   }
 
-  def getAttachmentResource[S](obj: CouchDoc[S], name: String): Task[String] = {
+  def getAttachmentResource[D](obj: CouchDoc[D], name: String): Task[String] = {
     if (obj._id.isEmpty)
       Res.Error("not_found", "Document ID must not be empty").toTask[String]
     else
       Task.now(s"/$db/${obj._id}/$name")
   }
 
-  def getAttachmentUrl[S](obj: CouchDoc[S], name: String): Task[String] = {
+  def getAttachmentUrl[D](obj: CouchDoc[D], name: String): Task[String] = {
     getAttachmentResource(obj, name).map(client.url(_).toString())
   }
 
-  def getAttachment[S](obj: CouchDoc[S], name: String): Task[Array[Byte]] = {
+  def getAttachment[D](obj: CouchDoc[D], name: String): Task[Array[Byte]] = {
     getAttachmentResource(obj, name).flatMap(client.getBinary(_, Status.Ok))
   }
 
-  def deleteAttachment[S](obj: CouchDoc[S], name: String): Task[Res.DocOk] = {
+  def deleteAttachment[D](obj: CouchDoc[D], name: String): Task[Res.DocOk] = {
     if (obj._id.isEmpty)
       Res.Error("cannot_delete", "Document ID must not be empty").toTask[Res.DocOk]
     else if (name.isEmpty)

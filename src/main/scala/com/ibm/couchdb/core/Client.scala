@@ -24,15 +24,13 @@ import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
-import upickle.default.{Reader, Writer, read, write}
+import upickle.default.Aliases.{R, W}
+import upickle.default.{read, write}
 
 import scalaz.Scalaz._
 import scalaz.concurrent.Task
 
 class Client(config: Config) {
-
-  type R[T] = Reader[T]
-  type W[T] = Writer[T]
 
   private val log = org.log4s.getLogger
 

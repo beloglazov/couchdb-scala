@@ -20,6 +20,8 @@ import com.ibm.couchdb.spec.Fixtures
 import org.http4s.Status
 import org.specs2.mutable._
 import org.specs2.specification.AllExpectations
+import upickle.default.Aliases.{R, W}
+import upickle.default.{read => pickleR, write => pickleW}
 
 class UpickleImplicitsSpec extends Specification
                                    with AllExpectations
@@ -41,32 +43,30 @@ class UpickleImplicitsSpec extends Specification
   val map4  = Map[String, FixPerson]("key1" -> FixPerson("Alice", 25), "key2" -> FixPerson("Bob", 30))
   val json4 = "{\"key1\":{\"name\":\"Alice\",\"age\":25},\"key2\":{\"name\":\"Bob\",\"age\":30}}"
 
-  private def testRoundtrip[T](obj: T)(implicit r: upickle.default.Reader[T], w: upickle.default.Writer[T]) = {
-    upickle.default.read[T](upickle.default.write(obj)) mustEqual obj
+  private def testRoundtrip[D](obj: D)(implicit r: R[D], w: W[D]) = {
+    pickleR[D](pickleW(obj)) mustEqual obj
   }
 
   "Custom upickle Reader and Writer instances" >> {
 
-    "Write and read Map[String, T]" >> {
-      upickle.default.write(map0) mustEqual json0
-      upickle.default.write(map1) mustEqual json1
-      upickle.default.write(map2) mustEqual json2
-      upickle.default.write(map3) mustEqual json3
-      upickle.default.write(map4) mustEqual json4
+    "Write and read Map[String, D]" >> {
+      pickleW(map0) mustEqual json0
+      pickleW(map1) mustEqual json1
+      pickleW(map2) mustEqual json2
+      pickleW(map3) mustEqual json3
+      pickleW(map4) mustEqual json4
     }
 
-    "Read Map[String, T] from JSON" >> {
-      upickle.default.read[Map[String, String]](json0) mustEqual map0
-      upickle.default.read[Map[String, String]](json1) mustEqual map1
-      upickle.default.read[Map[String, Int]](json2) mustEqual map2
-      upickle.default.read[Map[String, (String, Int)]](json3) mustEqual map3
-      upickle.default.read[Map[String, FixPerson]](json4) mustEqual map4
+    "Read Map[String, D] from JSON" >> {
+      pickleR[Map[String, String]](json0) mustEqual map0
+      pickleR[Map[String, String]](json1) mustEqual map1
+      pickleR[Map[String, Int]](json2) mustEqual map2
+      pickleR[Map[String, (String, Int)]](json3) mustEqual map3
+      pickleR[Map[String, FixPerson]](json4) mustEqual map4
     }
 
     "Write and read an Status" >> {
       testRoundtrip[Status](Status.Ok)
     }
-
   }
-
 }

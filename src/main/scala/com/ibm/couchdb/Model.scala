@@ -20,7 +20,7 @@ import sun.misc.BASE64Decoder
 
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
 
-case class CouchDoc[T](doc: T,
+case class CouchDoc[D](doc: D,
                        kind: String,
                        _id: String = "",
                        _rev: String = "",
@@ -68,7 +68,7 @@ case class CouchDesign(name: String,
                        _attachments: Map[String, CouchAttachment] = Map.empty[String, CouchAttachment],
                        signatures: Map[String, String] = Map.empty[String, String])
 
-case class CouchException[T](content: T) extends Throwable {
+case class CouchException[D](content: D) extends Throwable {
   override def toString: String = "CouchException: " + content
 }
 

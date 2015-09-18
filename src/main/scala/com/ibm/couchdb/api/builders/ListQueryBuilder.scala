@@ -19,6 +19,8 @@ package com.ibm.couchdb.api.builders
 import com.ibm.couchdb.Res
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
+import upickle.default.Aliases.W
+import upickle.default.write
 
 import scalaz.concurrent.Task
 
@@ -36,8 +38,8 @@ case class ListQueryBuilder(client: Client,
     set("descending", descending)
   }
 
-  def endKey[T: upickle.default.Writer](endKey: T): ListQueryBuilder = {
-    set("endkey", upickle.default.write(endKey))
+  def endKey[K: W](endKey: K): ListQueryBuilder = {
+    set("endkey", write(endKey))
   }
 
   def endKeyDocId(endKeyDocId: String): ListQueryBuilder = {
@@ -56,8 +58,8 @@ case class ListQueryBuilder(client: Client,
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[T: upickle.default.Writer](key: T): ListQueryBuilder = {
-    set("key", upickle.default.write(key))
+  def key[K: W](key: K): ListQueryBuilder = {
+    set("key", write(key))
   }
 
   def limit(limit: Int): ListQueryBuilder = {
@@ -76,8 +78,8 @@ case class ListQueryBuilder(client: Client,
     set("stale", stale)
   }
 
-  def startKey[T: upickle.default.Writer](startKey: T): ListQueryBuilder = {
-    set("startkey", upickle.default.write(startKey))
+  def startKey[K: W](startKey: K): ListQueryBuilder = {
+    set("startkey", write(startKey))
   }
 
   def startKeyDocId(startKeyDocId: String): ListQueryBuilder = {

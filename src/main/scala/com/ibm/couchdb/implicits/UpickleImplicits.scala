@@ -17,14 +17,16 @@
 package com.ibm.couchdb.implicits
 
 import org.http4s.Status
+import upickle.default.Aliases.{R, W}
+import upickle.default.{Reader => Rr, Writer => Wr}
 import upickle.{Js, Types}
 
 trait UpickleImplicits extends Types {
-  implicit val statusW: upickle.default.Writer[Status] = upickle.default.Writer[Status] {
+  implicit val statusW: W[Status] = Wr[Status] {
     x => Js.Num(x.code.toDouble)
   }
 
-  implicit val statusR: upickle.default.Reader[Status] = upickle.default.Reader[Status] {
+  implicit val statusR: R[Status] = Rr[Status] {
     case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
   }
 }

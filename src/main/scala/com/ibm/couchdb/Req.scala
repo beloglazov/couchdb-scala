@@ -18,8 +18,8 @@ package com.ibm.couchdb
 
 object Req {
 
-  case class Docs[T](docs: Seq[CouchDoc[T]])
+  case class Docs[D](docs: Seq[CouchDoc[D]])
 
-  case class DocKeys[T](keys: Seq[T])
+  case class DocKeys[K](keys: Seq[K])
 
 }
