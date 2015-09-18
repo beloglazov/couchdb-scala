@@ -229,7 +229,7 @@ class DocumentsSpec extends CouchDbSpecification {
 
     "Bulk update should" >> {
       val fixes = Seq(fixAlice, fixBob, fixHaile)
-      def change(s: String) = s + "-updated"
+      def change(v: String): String = s"$v-updated"
       def create(x: Seq[FixPerson]): Seq[CouchDoc[FixPerson]] = {
         clear()
         val newIds = awaitRight(documents.createMany(x)).map(_.id)
@@ -238,7 +238,7 @@ class DocumentsSpec extends CouchDbSpecification {
       def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] =
         orig.map(x => x applyLens _docPersonName modify change)
 
-      def createAndModify = create _ andThen modify
+      def createAndModify: (Seq[FixPerson]) => Seq[CouchDoc[FixPerson]] = create _ andThen modify
 
       "update all documents when valid Ids and Rev" >> {
         val modified = createAndModify(fixes)
@@ -278,7 +278,7 @@ class DocumentsSpec extends CouchDbSpecification {
         deleted.size mustEqual fixes.size
         val getDeleted = awaitRight(documents.getMany[FixPerson](created.map(_._id)))
         getDeleted.getDocs.size mustEqual fixes.size
-        getDeleted.getDocs.count(_ != null) mustEqual 0
+        getDeleted.getDocs.count(Option(_).isDefined) mustEqual 0
       }
 
       "fail if one or more elements is missing an Id" >> {
