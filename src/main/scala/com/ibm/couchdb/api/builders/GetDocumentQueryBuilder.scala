@@ -19,6 +19,8 @@ package com.ibm.couchdb.api.builders
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
+import upickle.default.Aliases.R
+import upickle.default.write
 
 import scalaz.concurrent.Task
 
@@ -35,7 +37,7 @@ case class GetDocumentQueryBuilder(client: Client,
   }
 
   def attsSince(attsSince: Seq[String]): GetDocumentQueryBuilder = {
-    set("att_encoding_info", upickle.write(attsSince))
+    set("att_encoding_info", write(attsSince))
   }
 
   def conflicts(conflicts: Boolean = true): GetDocumentQueryBuilder = {
@@ -59,7 +61,7 @@ case class GetDocumentQueryBuilder(client: Client,
   }
 
   def openRevs(openRevs: Seq[String]): GetDocumentQueryBuilder = {
-    set("open_revs", upickle.write(openRevs))
+    set("open_revs", write(openRevs))
   }
 
   def openRevs(openRevs: String): GetDocumentQueryBuilder = {
@@ -86,11 +88,11 @@ case class GetDocumentQueryBuilder(client: Client,
     set(key, value.toString)
   }
 
-  def query[T: upickle.Reader](id: String): Task[CouchDoc[T]] = {
+  def query[D: R](id: String): Task[CouchDoc[D]] = {
     if (id.isEmpty)
-      Res.Error("not_found", "No ID specified").toTask[CouchDoc[T]]
+      Res.Error("not_found", "No ID specified").toTask[CouchDoc[D]]
     else
-      client.get[CouchDoc[T]](
+      client.get[CouchDoc[D]](
         s"/$db/$id",
         Status.Ok,
         params.toSeq)

@@ -51,11 +51,11 @@ trait CouchDbSpecification extends Specification with
     await(future) must beRightDisjunction(Res.Ok(ok = true))
   }
 
-  def awaitDocOk[T](future: Task[Res.DocOk]): MatchResult[Any] = {
+  def awaitDocOk[D](future: Task[Res.DocOk]): MatchResult[Any] = {
     checkDocOk(awaitRight(future))
   }
 
-  def awaitDocOk[T](future: Task[Res.DocOk], id: String): MatchResult[Any] = {
+  def awaitDocOk[D](future: Task[Res.DocOk], id: String): MatchResult[Any] = {
     checkDocOk(awaitRight(future), id)
   }
 

@@ -1,4 +1,4 @@
-import SonatypeKeys._
+import xerial.sbt.Sonatype.SonatypeKeys._
 
 sonatypeSettings
 
@@ -8,9 +8,9 @@ organization := "com.ibm"
 
 name := "couchdb-scala"
 
-version := "0.5.3-SNAPSHOT"
+version := "0.6.0-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.7"
 
 description := "A purely functional Scala client for CouchDB"
 
@@ -22,14 +22,14 @@ licenses := Seq("The Apache Software License, Version 2.0"
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= Seq(
-  "org.scalaz"                  %% "scalaz-core"                 % "7.1.0",
-  "org.scalaz"                  %% "scalaz-effect"               % "7.1.0",
-  "org.http4s"                  %% "http4s-core"                 % "0.8.2",
-  "org.http4s"                  %% "http4s-client"               % "0.8.2",
-  "org.http4s"                  %% "http4s-blazeclient"          % "0.8.2",
-  "com.lihaoyi"                 %% "upickle"                     % "0.2.6",
-  "com.github.julien-truffaut"  %% "monocle-core"                % "1.0.1",
-  "com.github.julien-truffaut"  %% "monocle-macro"               % "1.0.1",
+  "org.scalaz"                  %% "scalaz-core"                 % "7.1.3",
+  "org.scalaz"                  %% "scalaz-effect"               % "7.1.3",
+  "org.http4s"                  %% "http4s-core"                 % "0.10.0",
+  "org.http4s"                  %% "http4s-client"               % "0.10.0",
+  "org.http4s"                  %% "http4s-blaze-client"         % "0.10.0",
+  "com.lihaoyi"                 %% "upickle"                     % "0.3.6",
+  "com.github.julien-truffaut"  %% "monocle-core"                % "1.1.1",
+  "com.github.julien-truffaut"  %% "monocle-macro"               % "1.1.1",
   "org.log4s"                   %% "log4s"                       % "1.1.3",
   "org.specs2"                  %% "specs2"                      % "2.4.16" % "test",
   "org.typelevel"               %% "scalaz-specs2"               % "0.3.0"  % "test",

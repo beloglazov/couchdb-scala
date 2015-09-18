@@ -18,7 +18,7 @@ package com.ibm.couchdb.spec
 
 import com.ibm.couchdb.Lenses._
 import com.ibm.couchdb._
-import monocle.macros.Lenser
+import monocle.macros.GenLens
 
 trait Fixtures {
 
@@ -26,7 +26,7 @@ trait Fixtures {
 
   val typeMapping = TypeMapping(classOf[FixPerson] -> "Person")
 
-  val lenser         = Lenser[FixPerson]
+  val lenser         = GenLens[FixPerson]
   val _personName    = lenser(_.name)
   val _personAge     = lenser(_.age)
   val _docPersonName = _couchDoc composeLens _personName

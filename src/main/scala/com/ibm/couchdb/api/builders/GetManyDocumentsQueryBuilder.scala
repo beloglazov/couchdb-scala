@@ -19,6 +19,8 @@ package com.ibm.couchdb.api.builders
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
+import upickle.default.Aliases.{R,W}
+import upickle.default.write
 
 import scalaz.concurrent.Task
 
@@ -34,8 +36,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("descending", descending)
   }
 
-  def endKey[T: upickle.Writer](endKey: T): GetManyDocumentsQueryBuilder = {
-    set("endkey", upickle.write(endKey))
+  def endKey[K: W](endKey: K): GetManyDocumentsQueryBuilder = {
+    set("endkey", write(endKey))
   }
 
   def endKeyDocId(endKeyDocId: String): GetManyDocumentsQueryBuilder = {
@@ -50,8 +52,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[T: upickle.Writer](key: T): GetManyDocumentsQueryBuilder = {
-    set("key", upickle.write(key))
+  def key[K: W](key: K): GetManyDocumentsQueryBuilder = {
+    set("key", write(key))
   }
 
   def limit(limit: Int): GetManyDocumentsQueryBuilder = {
@@ -66,8 +68,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     set("stale", stale)
   }
 
-  def startKey[T: upickle.Writer](startKey: T): GetManyDocumentsQueryBuilder = {
-    set("startkey", upickle.write(startKey))
+  def startKey[K: W](startKey: K): GetManyDocumentsQueryBuilder = {
+    set("startkey", write(startKey))
   }
 
   def startKeyDocId(startKeyDocId: String): GetManyDocumentsQueryBuilder = {
@@ -104,14 +106,14 @@ case class GetManyDocumentsQueryBuilder(client: Client,
         params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader]: Task[CouchDocs[String, CouchDocRev, D]] = {
+  def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
     client.get[CouchDocs[String, CouchDocRev, D]](
       s"/$db/_all_docs",
       Status.Ok,
       includeDocs().params.toSeq)
   }
 
-  def queryIncludeDocs[D: upickle.Reader](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
+  def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask[CouchDocs[String, CouchDocRev, D]]
     else
