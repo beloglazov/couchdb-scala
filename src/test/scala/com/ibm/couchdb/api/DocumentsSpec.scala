@@ -15,11 +15,12 @@
  */
 
 package com.ibm.couchdb.api
-
 import com.ibm.couchdb.CouchDoc
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import monocle.syntax._
 import org.http4s.Status
+
+import scala.language.experimental.macros
 
 class DocumentsSpec extends CouchDbSpecification {
 
@@ -91,6 +92,19 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdCarl.id)
     }
 
+    "Get multiple documents by IDs with some missing" >> {
+      clear()
+      val fixPersons = Seq(fixAlice, fixBob, fixCarl)
+      val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
+      val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
+      val existingIds = createdPersons.map(_.id)
+      val docs = awaitRight(documents.getManyAllowMissing.query(existingIds ++ missingIds))
+      docs.offset mustEqual 0
+      docs.rows must haveLength(missingIds.length + existingIds.length)
+      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
+      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
+    }
+
     "Get all documents and include the doc data" >> {
       clear()
       val created1 = awaitRight(documents.create(fixAlice))
@@ -120,6 +134,22 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.getDocsData mustEqual Seq(fixAlice, fixCarl)
     }
 
+    "Get multiple documents by IDs with some missing and include the doc data" >> {
+      clear()
+      val fixPersons = Seq(fixAlice, fixBob, fixCarl)
+      val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
+      val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
+      val existingIds = createdPersons.map(_.id)
+      val docs = awaitRight(documents.getManyAllowMissing.queryIncludeDocs[FixPerson](existingIds ++ missingIds))
+      docs.offset mustEqual 0
+      docs.rows must haveLength(missingIds.length + existingIds.length)
+      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
+      docs.rows.flatMap(_.toOption).map(_.doc.doc) mustEqual fixPersons
+      docs.getDocs.flatMap(_.toOption).map(_.doc) mustEqual fixPersons
+      docs.getDocsData mustEqual fixPersons
+
+      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
+    }
     "Get a document containing unicode values" >> {
       clear()
       val created1 = awaitRight(documents.create[FixPerson](fixHaile))

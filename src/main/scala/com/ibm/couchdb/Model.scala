@@ -18,6 +18,8 @@ package com.ibm.couchdb
 
 import sun.misc.BASE64Decoder
 
+import scalaz.\/
+
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
 
 case class CouchDoc[D](doc: D,
@@ -34,14 +36,26 @@ case class CouchDocRev(rev: String)
 
 case class CouchKeyVal[K, V](id: String, key: K, value: V)
 
+case class CouchKeyError[K](key: K, error: String)
+
 case class CouchKeyValWithDoc[K, V, D](id: String, key: K, value: V, doc: CouchDoc[D])
 
 case class CouchKeyVals[K, V](offset: Int, total_rows: Int, rows: Seq[CouchKeyVal[K, V]])
+
+case class CouchKeyValsIncludesMissing[K, V](offset: Int, total_rows: Int, rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
 
 case class CouchDocs[K, V, D](offset: Int, total_rows: Int, rows: Seq[CouchKeyValWithDoc[K, V, D]]) {
   def getDocs: Seq[CouchDoc[D]] = rows.map(_.doc)
 
   def getDocsData: Seq[D] = rows.map(_.doc.doc)
+}
+
+case class CouchDocsIncludesMissing[K, V, D](offset: Int,
+                                             total_rows: Int,
+                                             rows: Seq[\/[CouchKeyError[K], CouchKeyValWithDoc[K, V, D]]]) {
+  def getDocs: Seq[CouchDoc[D]] = rows.flatMap(_.toOption).map(_.doc)
+
+  def getDocsData: Seq[D] = rows.flatMap(_.toOption).map(_.doc.doc)
 }
 
 case class CouchAttachment(content_type: String,
