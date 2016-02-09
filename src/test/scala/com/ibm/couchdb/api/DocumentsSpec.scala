@@ -69,6 +69,19 @@ class DocumentsSpec extends CouchDbSpecification {
       checkDocOk(res(1))
     }
 
+    "Create multiple documents in bulk with IDs" >> {
+      clear()
+      val docs = Map("1" -> fixAlice, "2" -> fixBob)
+      val res = awaitRight(documents.createMany(docs))
+      res must haveLength(docs.size)
+      res.foreach(checkDocOk)
+      res.map(_.id) mustEqual docs.keys.toList
+
+      val created = awaitRight(documents.getMany[FixPerson](docs.keys.toList))
+      created.getDocs.map(_.doc) mustEqual docs.values.toSeq
+      created.rows.map(_.id) mustEqual docs.keys.toSeq
+     }
+
     "Get all documents" >> {
       clear()
       val created1 = awaitRight(documents.create(fixAlice))
