@@ -85,13 +85,13 @@ class QueryViewSpec extends CouchDbSpecification {
       docs1.offset mustEqual 0
       docs1.total_rows mustEqual 3
       docs1.rows must haveLength(1)
-      docs1.rows(0).key mustEqual "Alice"
-      docs1.rows(0).value mustEqual "Alice"
+      docs1.rows.head.key mustEqual "Alice"
+      docs1.rows.head.value mustEqual "Alice"
       val docs2 = awaitRight(compoundView.key((30, "Bob")).query)
       docs2.offset mustEqual 2
       docs2.total_rows mustEqual 3
       docs2.rows must haveLength(1)
-      docs2.rows(0).key mustEqual ((30, "Bob"))
+      docs2.rows.head.key mustEqual ((30, "Bob"))
     }
 
     "Query a view and include documents" >> {
