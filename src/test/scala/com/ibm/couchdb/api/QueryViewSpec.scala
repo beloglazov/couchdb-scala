@@ -27,6 +27,7 @@ class QueryViewSpec extends CouchDbSpecification {
   val query        = new Query(client, db)
   val namesView    = query.view[String, String](fixDesign.name, FixViews.names).get
   val compoundView = query.view[(Int, String), FixPerson](fixDesign.name, FixViews.compound).get
+  val aggregateView = query.view[String, String](fixDesign.name, FixViews.aggregate).get
 
   recreateDb(databases, db)
 
@@ -45,6 +46,19 @@ class QueryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdBob.id, createdCarl.id)
       docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+    }
+
+    "Query a view with reducer" >> {
+      val docs = awaitRight(aggregateView.queryWithReduce[String, Int])
+      docs.rows must haveLength(1)
+      docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
+    }
+
+    "Query a view with reducer given keys" >> {
+      val docs = awaitRight(aggregateView.queryWithReduce[String, Int](Seq(createdCarl.id, createdAlice.id)))
+      docs.rows must haveLength(2)
+      docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
+      docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
     }
 
     "Query a view in the descending order" >> {

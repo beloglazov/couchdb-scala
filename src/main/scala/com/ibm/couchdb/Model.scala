@@ -36,11 +36,15 @@ case class CouchDocRev(rev: String)
 
 case class CouchKeyVal[K, V](id: String, key: K, value: V)
 
+case class CouchReducedKeyVal[K, V](key: K, value: V)
+
 case class CouchKeyError[K](key: K, error: String)
 
 case class CouchKeyValWithDoc[K, V, D](id: String, key: K, value: V, doc: CouchDoc[D])
 
 case class CouchKeyVals[K, V](offset: Int, total_rows: Int, rows: Seq[CouchKeyVal[K, V]])
+
+case class CouchReducedKeyVals[K, V](rows: Seq[CouchReducedKeyVal[K, V]])
 
 case class CouchKeyValsIncludesMissing[K, V](offset: Int, total_rows: Int, rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
 
