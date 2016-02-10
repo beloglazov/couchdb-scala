@@ -111,7 +111,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docs = awaitRight(documents.getManyAllowMissing.query(existingIds ++ missingIds))
+      val docs = awaitRight(documents.getMany.queryAllowMissing(existingIds ++ missingIds))
       docs.offset mustEqual 0
       docs.rows must haveLength(missingIds.length + existingIds.length)
       docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
@@ -153,7 +153,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docs = awaitRight(documents.getManyAllowMissing.queryIncludeDocs[FixPerson](existingIds ++ missingIds))
+      val docs = awaitRight(documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
       docs.offset mustEqual 0
       docs.rows must haveLength(missingIds.length + existingIds.length)
       docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
@@ -162,6 +162,7 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.getDocsData mustEqual fixPersons
       docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
     }
+
     "Get a document containing unicode values" >> {
       clear()
       val created1 = awaitRight(documents.create[FixPerson](fixHaile))

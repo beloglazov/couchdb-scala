@@ -89,14 +89,8 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
 
   def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db)
 
-  def getManyAllowMissing: GetManyDocsQueryBuilderAllowMissing = GetManyDocsQueryBuilderAllowMissing(client, db)
-
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     getMany.queryIncludeDocs[D](ids)
-  }
-
-  def getManyAllowMissing[D: R](ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
-    getManyAllowMissing.queryIncludeDocs[D](ids)
   }
 
   def update[D: W](obj: CouchDoc[D]): Task[Res.DocOk] = {

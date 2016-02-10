@@ -19,7 +19,7 @@ package com.ibm.couchdb.api.builders
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
-import upickle.default.Aliases.{R,W}
+import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
 import scalaz.concurrent.Task
@@ -89,39 +89,37 @@ case class GetManyDocumentsQueryBuilder(client: Client,
   }
 
   def query: Task[CouchKeyVals[String, CouchDocRev]] = {
-    client.get[CouchKeyVals[String, CouchDocRev]](
-      s"/$db/_all_docs",
-      Status.Ok,
-      params.toSeq)
+    queryWithoutIds[CouchKeyVals[String, CouchDocRev]](params)
   }
 
   def query(ids: Seq[String]): Task[CouchKeyVals[String, CouchDocRev]] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[CouchKeyVals[String, CouchDocRev]]
-    else
-      client.post[Req.DocKeys[String], CouchKeyVals[String, CouchDocRev]](
-        s"/$db/_all_docs",
-        Status.Ok,
-        Req.DocKeys(ids),
-        params.toSeq)
+    queryByIds[CouchKeyVals[String, CouchDocRev]](ids, params)
+  }
+
+  def queryAllowMissing(ids: Seq[String]): Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
+    queryByIds[CouchKeyValsIncludesMissing[String, CouchDocRev]](ids, params)
   }
 
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
-    client.get[CouchDocs[String, CouchDocRev, D]](
-      s"/$db/_all_docs",
-      Status.Ok,
-      includeDocs().params.toSeq)
+    queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs().params)
   }
 
   def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[CouchDocs[String, CouchDocRev, D]]
-    else
-      client.post[Req.DocKeys[String], CouchDocs[String, CouchDocRev, D]](
-        s"/$db/_all_docs",
-        Status.Ok,
-        Req.DocKeys(ids),
-        includeDocs().params.toSeq)
+    queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
+  def queryIncludeDocsAllowMissing[D: R](ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
+    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
+  }
+
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
+    client.get[Q](s"/$db/_all_docs", Status.Ok, ps.toSeq)
+  }
+
+  private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
+    if (ids.isEmpty)
+      Res.Error("not_found", "No IDs specified").toTask[Q]
+    else
+      client.post[Req.DocKeys[String], Q](s"/$db/_all_docs", Status.Ok, Req.DocKeys(ids), ps.toSeq)
+  }
 }
