@@ -54,13 +54,17 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
       Status.Created, Req.Docs(objs))
   }
 
-  def createMany[D: W](objs: Seq[D]): Task[Seq[Res.DocOk]] = {
-    val classes = objs.map(getClassName(_))
-    if (classes.exists(!types.contains(_))) {
-      val missing = classes.find(!types.contains(_))
-      Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
-    } else
-      postBulk(objs.map(x => CouchDoc[D](x, types(getClassName(x)))))
+  def createMany[D: W](objs: Map[String, D]): Task[Seq[Res.DocOk]] = create(objs.toSeq)
+
+  def createMany[D: W](objs: Seq[D]): Task[Seq[Res.DocOk]] = create(objs.map(("", _)))
+
+  private def create[D: W, S](objs: Seq[(String, D)]): Task[Seq[Res.DocOk]] = {
+    objs.find { x => !types.contains(getClassName(x._2)) } match {
+      case Some(missing) =>
+        Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
+      case None =>
+        postBulk(objs.map { o => CouchDoc[D](_id = o._1, doc = o._2, kind = types(getClassName(o._2))) })
+    }
   }
 
   def updateMany[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
@@ -160,5 +164,4 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     // TODO: replace with scodec / scalaz-stream / scodec-stream?
     Files.readAllBytes(Paths.get(path))
   }
-
 }
