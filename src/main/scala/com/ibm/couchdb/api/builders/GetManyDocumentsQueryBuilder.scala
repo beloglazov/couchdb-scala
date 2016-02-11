@@ -25,7 +25,7 @@ import scalaz.concurrent.Task
 
 case class GetManyDocumentsQueryBuilder(client: Client,
                                         db: String,
-                                        params: Map[String, String] = Map.empty[String, String]) {
+                                        params: Map[String, String] = Map.empty[String, String]) extends QueryStrategy {
 
   def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
     set("conflicts", conflicts)
@@ -112,10 +112,10 @@ case class GetManyDocumentsQueryBuilder(client: Client,
   }
 
   def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    QueryStrategy.query[Q](client, db, s"/$db/_all_docs", ps)
+    query[Q](client, db, s"/$db/_all_docs", ps)
   }
 
   def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
-    QueryStrategy.queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
+    queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
   }
 }

@@ -24,7 +24,7 @@ import upickle.default._
 
 import scalaz.concurrent.Task
 
-object QueryStrategy {
+trait QueryStrategy {
 
   def query[Q: R](client: Client, db: String, url: String, ps: Map[String, String]): Task[Q] = {
     client.get[Q](url, Status.Ok, ps.toSeq)

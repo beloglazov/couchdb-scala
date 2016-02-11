@@ -33,7 +33,7 @@ case class ViewQueryBuilder[K, V](client: Client,
                                   kw: W[K],
                                   vr: R[V],
                                   cdr: R[CouchKeyVals[K, V]],
-                                  dkw: W[Req.DocKeys[K]]) {
+                                  dkw: W[Req.DocKeys[K]]) extends QueryStrategy {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -134,10 +134,10 @@ case class ViewQueryBuilder[K, V](client: Client,
   }
 
   def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    QueryStrategy.query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
+    query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
   }
 
   def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
-    QueryStrategy.queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
+    queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
   }
 }
