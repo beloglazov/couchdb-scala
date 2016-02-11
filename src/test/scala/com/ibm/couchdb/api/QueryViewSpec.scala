@@ -49,13 +49,13 @@ class QueryViewSpec extends CouchDbSpecification {
     }
 
     "Query a view with reducer" >> {
-      val docs = awaitRight(aggregateView.queryWithReduce[String, Int])
+      val docs = awaitRight(aggregateView.queryWithReduce[Int])
       docs.rows must haveLength(1)
       docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
     }
 
     "Query a view with reducer given keys" >> {
-      val docs = awaitRight(aggregateView.queryWithReduce[String, Int](Seq(createdCarl.id, createdAlice.id)))
+      val docs = awaitRight(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
       docs.rows must haveLength(2)
       docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
       docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)

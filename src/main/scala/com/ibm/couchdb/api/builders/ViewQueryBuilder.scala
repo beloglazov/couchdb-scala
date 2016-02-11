@@ -117,14 +117,14 @@ case class ViewQueryBuilder[K, V](client: Client,
 
   def query: Task[CouchKeyVals[K, V]] = queryWithoutIds[CouchKeyVals[K, V]](params)
 
-  def queryWithReduce[K2: R, V2: R]: Task[CouchReducedKeyVals[K2, V2]] = {
-    queryWithoutIds[CouchReducedKeyVals[K2, V2]](reduce().params)
+  def queryWithReduce[V2: R]: Task[CouchReducedKeyVals[K, V2]] = {
+    queryWithoutIds[CouchReducedKeyVals[K, V2]](reduce().params)
   }
 
   def query(keys: Seq[K]): Task[CouchKeyVals[K, V]] = queryByIds[CouchKeyVals[K, V]](keys, params)
 
-  def queryWithReduce[K2: R, V2: R](keys: Seq[K]): Task[CouchReducedKeyVals[K2, V2]] = {
-    queryByIds[CouchReducedKeyVals[K2, V2]](keys, reduce().group().params)
+  def queryWithReduce[V2: R](keys: Seq[K]): Task[CouchReducedKeyVals[K, V2]] = {
+    queryByIds[CouchReducedKeyVals[K, V2]](keys, reduce().group().params)
   }
 
   def queryIncludeDocs[D: R]: Task[CouchDocs[K, V, D]] = queryWithoutIds[CouchDocs[K, V, D]](includeDocs().params)
