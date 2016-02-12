@@ -21,6 +21,8 @@ import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import monocle.syntax._
 import org.http4s.Status
 
+import scala.language.experimental.macros
+
 class DocumentsSpec extends CouchDbSpecification {
 
   val db        = "couchdb-scala-documents-spec"
@@ -75,7 +77,6 @@ class DocumentsSpec extends CouchDbSpecification {
       res must haveLength(docs.size)
       res.foreach(checkDocOk)
       res.map(_.id) mustEqual docs.keys.toList
-
       val created = awaitRight(documents.getMany[FixPerson](docs.keys.toList))
       created.getDocs.map(_.doc) mustEqual docs.values.toSeq
       created.rows.map(_.id) mustEqual docs.keys.toSeq
@@ -102,6 +103,19 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.total_rows mustEqual 3
       docs.rows must haveLength(2)
       docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdCarl.id)
+    }
+
+    "Get multiple documents by IDs with some missing" >> {
+      clear()
+      val fixPersons = Seq(fixAlice, fixBob, fixCarl)
+      val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
+      val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
+      val existingIds = createdPersons.map(_.id)
+      val docs = awaitRight(documents.getMany.queryAllowMissing(existingIds ++ missingIds))
+      docs.offset mustEqual 0
+      docs.rows must haveLength(missingIds.length + existingIds.length)
+      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
+      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
     }
 
     "Get all documents and include the doc data" >> {
@@ -133,11 +147,26 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.getDocsData mustEqual Seq(fixAlice, fixCarl)
     }
 
+    "Get multiple documents by IDs with some missing and include the doc data" >> {
+      clear()
+      val fixPersons = Seq(fixAlice, fixBob, fixCarl)
+      val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
+      val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
+      val existingIds = createdPersons.map(_.id)
+      val docs = awaitRight(documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
+      docs.offset mustEqual 0
+      docs.rows must haveLength(missingIds.length + existingIds.length)
+      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
+      docs.rows.flatMap(_.toOption).map(_.doc.doc) mustEqual fixPersons
+      docs.getDocs.flatMap(_.toOption).map(_.doc) mustEqual fixPersons
+      docs.getDocsData mustEqual fixPersons
+      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
+    }
+
     "Get a document containing unicode values" >> {
       clear()
       val created1 = awaitRight(documents.create[FixPerson](fixHaile))
       awaitRight(documents.get[FixPerson](created1.id)).doc mustEqual fixHaile
-
       val created2 = awaitRight(documents.createMany[FixPerson](Seq(fixHaile, fixMagritte)))
       val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson](created2.map(_.id)))
       docs.getDocs.map(_.doc) mustEqual Seq(fixHaile, fixMagritte)
@@ -257,7 +286,6 @@ class DocumentsSpec extends CouchDbSpecification {
         val modified = createAndModify(fixes)
         val updatedDocs = awaitRight(documents.updateMany(modified)).map(_.id)
         updatedDocs.size mustEqual fixes.size
-
         val updateDocs = awaitRight(documents.getMany[FixPerson](modified.map(_._id)))
         updateDocs.getDocs.map(_.doc) mustEqual fixes.map(x => FixPerson(change(x.name), age = x.age))
       }

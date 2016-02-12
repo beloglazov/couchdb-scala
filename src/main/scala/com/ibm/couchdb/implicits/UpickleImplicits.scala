@@ -16,10 +16,14 @@
 
 package com.ibm.couchdb.implicits
 
+import com.ibm.couchdb.{CouchKeyError, CouchKeyVal, CouchKeyValWithDoc}
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
-import upickle.default.{Reader => Rr, Writer => Wr}
+import upickle.default.{Reader => Rr, Writer => Wr, readJs => rJs}
 import upickle.{Js, Types}
+
+import scala.util.Try
+import scalaz.{-\/, \/, \/-}
 
 trait UpickleImplicits extends Types {
   implicit val statusW: W[Status] = Wr[Status] {
@@ -29,4 +33,10 @@ trait UpickleImplicits extends Types {
   implicit val statusR: R[Status] = Rr[Status] {
     case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
   }
+
+  implicit def couchKeyValOrErrorR[K: R, V: R]: Rr[\/[CouchKeyError[K], CouchKeyVal[K, V]]] =
+    Rr { case o: Js.Obj => Try(\/-(rJs[CouchKeyVal[K, V]](o))).getOrElse(-\/(rJs[CouchKeyError[K]](o))) }
+
+  implicit def couchKeyValDocOrErrorR[K: R, V: R, D: R]: Rr[\/[CouchKeyError[K], CouchKeyValWithDoc[K, V, D]]] =
+    Rr { case o: Js.Obj => Try(\/-(rJs[CouchKeyValWithDoc[K, V, D]](o))).getOrElse(-\/(rJs[CouchKeyError[K]](o))) }
 }
