@@ -42,7 +42,9 @@ case class CouchKeyValWithDoc[K, V, D](id: String, key: K, value: V, doc: CouchD
 
 case class CouchKeyVals[K, V](offset: Int, total_rows: Int, rows: Seq[CouchKeyVal[K, V]])
 
-case class CouchKeyValsIncludesMissing[K, V](offset: Int, total_rows: Int, rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
+case class CouchKeyValsIncludesMissing[K, V](offset: Int,
+                                             total_rows: Int,
+                                             rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
 
 case class CouchDocs[K, V, D](offset: Int, total_rows: Int, rows: Seq[CouchKeyValWithDoc[K, V, D]]) {
   def getDocs: Seq[CouchDoc[D]] = rows.map(_.doc)

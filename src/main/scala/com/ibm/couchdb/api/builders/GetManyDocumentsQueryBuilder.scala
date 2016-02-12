@@ -112,14 +112,14 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
-  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    client.get[Q](s"/$db/_all_docs", Status.Ok, ps.toSeq)
+  private def queryWithoutIds[Q: R](parameters: Map[String, String]): Task[Q] = {
+    client.get[Q](s"/$db/_all_docs", Status.Ok, parameters.toSeq)
   }
 
-  private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
+  private def queryByIds[Q: R](ids: Seq[String], parameters: Map[String, String]): Task[Q] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask[Q]
     else
-      client.post[Req.DocKeys[String], Q](s"/$db/_all_docs", Status.Ok, Req.DocKeys(ids), ps.toSeq)
+      client.post[Req.DocKeys[String], Q](s"/$db/_all_docs", Status.Ok, Req.DocKeys(ids), parameters.toSeq)
   }
 }
