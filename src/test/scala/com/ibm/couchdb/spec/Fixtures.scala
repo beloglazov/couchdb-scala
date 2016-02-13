@@ -41,7 +41,7 @@ trait Fixtures {
   object FixViews {
     val names    = "names"
     val compound = "compound"
-    val aggregate = "aggregate"
+    val reduced  = "reduced"
   }
 
   object FixShows {
@@ -62,7 +62,7 @@ trait Fixtures {
         | emit(doc.doc.name, doc.doc.name);
         |}
         """.stripMargin),
-      FixViews.aggregate → CouchView(map =
+      FixViews.reduced → CouchView(map =
         """
         |function(doc) {
         | emit(doc._id, doc.doc.age);

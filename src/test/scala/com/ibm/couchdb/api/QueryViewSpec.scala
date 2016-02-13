@@ -27,7 +27,7 @@ class QueryViewSpec extends CouchDbSpecification {
   val query        = new Query(client, db)
   val namesView    = query.view[String, String](fixDesign.name, FixViews.names).get
   val compoundView = query.view[(Int, String), FixPerson](fixDesign.name, FixViews.compound).get
-  val aggregateView = query.view[String, String](fixDesign.name, FixViews.aggregate).get
+  val aggregateView = query.view[String, String](fixDesign.name, FixViews.reduced).get
 
   recreateDb(databases, db)
 
