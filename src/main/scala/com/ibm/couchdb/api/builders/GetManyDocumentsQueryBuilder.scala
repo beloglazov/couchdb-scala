@@ -111,11 +111,11 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
-  def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
     query[Q](client, db, s"/$db/_all_docs", ps)
   }
 
-  def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
+  private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
     queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
   }
 }

@@ -133,11 +133,11 @@ case class ViewQueryBuilder[K, V](client: Client,
     queryByIds[CouchDocs[K, V, D]](keys, includeDocs().params)
   }
 
-  def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
     query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
   }
 
-  def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
+  private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
     queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
   }
 }
