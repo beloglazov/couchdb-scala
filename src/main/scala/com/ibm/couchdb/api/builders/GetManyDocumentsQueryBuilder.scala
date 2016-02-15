@@ -18,7 +18,6 @@ package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
-import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
@@ -26,7 +25,7 @@ import scalaz.concurrent.Task
 
 case class GetManyDocumentsQueryBuilder(client: Client,
                                         db: String,
-                                        params: Map[String, String] = Map.empty[String, String]) {
+                                        params: Map[String, String] = Map.empty[String, String]) extends QueryStrategy {
 
   def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
     set("conflicts", conflicts)
@@ -112,14 +111,11 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
-  private def queryWithoutIds[Q: R](parameters: Map[String, String]): Task[Q] = {
-    client.get[Q](s"/$db/_all_docs", Status.Ok, parameters.toSeq)
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
+    query[Q](client, db, s"/$db/_all_docs", ps)
   }
 
-  private def queryByIds[Q: R](ids: Seq[String], parameters: Map[String, String]): Task[Q] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[Q]
-    else
-      client.post[Req.DocKeys[String], Q](s"/$db/_all_docs", Status.Ok, Req.DocKeys(ids), parameters.toSeq)
+  private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
+    queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
   }
 }

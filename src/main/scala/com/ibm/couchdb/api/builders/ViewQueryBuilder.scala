@@ -18,7 +18,6 @@ package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
-import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
@@ -34,7 +33,7 @@ case class ViewQueryBuilder[K, V](client: Client,
                                   kw: W[K],
                                   vr: R[V],
                                   cdr: R[CouchKeyVals[K, V]],
-                                  dkw: W[Req.DocKeys[K]]) {
+                                  dkw: W[Req.DocKeys[K]]) extends QueryStrategy {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -84,7 +83,7 @@ case class ViewQueryBuilder[K, V](client: Client,
     set("limit", limit)
   }
 
-  def reduce(reduce: Boolean = true): ViewQueryBuilder[K, V] = {
+  private def reduce(reduce: Boolean = true): ViewQueryBuilder[K, V] = {
     set("reduce", reduce)
   }
 
@@ -116,40 +115,29 @@ case class ViewQueryBuilder[K, V](client: Client,
     set(key, value.toString)
   }
 
-  def query: Task[CouchKeyVals[K, V]] = {
-    client.get[CouchKeyVals[K, V]](
-      s"/$db/_design/$design/_view/$view",
-      Status.Ok,
-      params.toSeq)
+  def query: Task[CouchKeyVals[K, V]] = queryWithoutIds[CouchKeyVals[K, V]](params)
+
+  def queryWithReduce[A: R]: Task[CouchReducedKeyVals[K, A]] = {
+    queryWithoutIds[CouchReducedKeyVals[K, A]](reduce().params)
   }
 
-  def query(keys: Seq[K]): Task[CouchKeyVals[K, V]] = {
-    if (keys.isEmpty)
-      Res.Error("not_found", "No keys specified").toTask[CouchKeyVals[K, V]]
-    else
-      client.post[Req.DocKeys[K], CouchKeyVals[K, V]](
-        s"/$db/_design/$design/_view/$view",
-        Status.Ok,
-        Req.DocKeys(keys),
-        params.toSeq)
+  def query(keys: Seq[K]): Task[CouchKeyVals[K, V]] = queryByIds[CouchKeyVals[K, V]](keys, params)
+
+  def queryWithReduce[A: R](keys: Seq[K]): Task[CouchReducedKeyVals[K, A]] = {
+    queryByIds[CouchReducedKeyVals[K, A]](keys, reduce().group().params)
   }
 
-  def queryIncludeDocs[D: R]: Task[CouchDocs[K, V, D]] = {
-    client.get[CouchDocs[K, V, D]](
-      s"/$db/_design/$design/_view/$view",
-      Status.Ok,
-      includeDocs().params.toSeq)
-  }
+  def queryIncludeDocs[D: R]: Task[CouchDocs[K, V, D]] = queryWithoutIds[CouchDocs[K, V, D]](includeDocs().params)
 
   def queryIncludeDocs[D: R](keys: Seq[K]): Task[CouchDocs[K, V, D]] = {
-    if (keys.isEmpty)
-      Res.Error("not_found", "No keys specified").toTask[CouchDocs[K, V, D]]
-    else
-      client.post[Req.DocKeys[K], CouchDocs[K, V, D]](
-        s"/$db/_design/$design/_view/$view",
-        Status.Ok,
-        Req.DocKeys(keys),
-        includeDocs().params.toSeq)
+    queryByIds[CouchDocs[K, V, D]](keys, includeDocs().params)
   }
 
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
+    query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
+  }
+
+  private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
+    queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
+  }
 }

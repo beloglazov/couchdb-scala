@@ -27,6 +27,7 @@ class QueryViewSpec extends CouchDbSpecification {
   val query        = new Query(client, db)
   val namesView    = query.view[String, String](fixDesign.name, FixViews.names).get
   val compoundView = query.view[(Int, String), FixPerson](fixDesign.name, FixViews.compound).get
+  val aggregateView = query.view[String, String](fixDesign.name, FixViews.reduced).get
 
   recreateDb(databases, db)
 
@@ -45,6 +46,19 @@ class QueryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdBob.id, createdCarl.id)
       docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+    }
+
+    "Query a view with reducer" >> {
+      val docs = awaitRight(aggregateView.queryWithReduce[Int])
+      docs.rows must haveLength(1)
+      docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
+    }
+
+    "Query a view with reducer given keys" >> {
+      val docs = awaitRight(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
+      docs.rows must haveLength(2)
+      docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
+      docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
     }
 
     "Query a view in the descending order" >> {
@@ -71,13 +85,13 @@ class QueryViewSpec extends CouchDbSpecification {
       docs1.offset mustEqual 0
       docs1.total_rows mustEqual 3
       docs1.rows must haveLength(1)
-      docs1.rows(0).key mustEqual "Alice"
-      docs1.rows(0).value mustEqual "Alice"
+      docs1.rows.head.key mustEqual "Alice"
+      docs1.rows.head.value mustEqual "Alice"
       val docs2 = awaitRight(compoundView.key((30, "Bob")).query)
       docs2.offset mustEqual 2
       docs2.total_rows mustEqual 3
       docs2.rows must haveLength(1)
-      docs2.rows(0).key mustEqual ((30, "Bob"))
+      docs2.rows.head.key mustEqual ((30, "Bob"))
     }
 
     "Query a view and include documents" >> {
