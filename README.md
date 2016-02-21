@@ -557,5 +557,5 @@ For more open-source projects from IBM, head over to (http://ibm.github.io).
 
 ## Copyright and license
 
-© Copyright 2015 IBM Corporation. Distributed under the [Apache 2.0
+© Copyright 2015 IBM Corporation, Google Inc. Distributed under the [Apache 2.0
 license](LICENSE).
