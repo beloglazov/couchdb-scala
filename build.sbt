@@ -22,9 +22,9 @@ licenses := Seq("The Apache Software License, Version 2.0"
 libraryDependencies ++= Seq(
   "org.scalaz"                  %% "scalaz-core"                 % "7.1.3",
   "org.scalaz"                  %% "scalaz-effect"               % "7.1.3",
-  "org.http4s"                  %% "http4s-core"                 % "0.11.3",
-  "org.http4s"                  %% "http4s-client"               % "0.11.3",
-  "org.http4s"                  %% "http4s-blaze-client"         % "0.11.3",
+  "org.http4s"                  %% "http4s-core"                 % "0.12.1",
+  "org.http4s"                  %% "http4s-client"               % "0.12.1",
+  "org.http4s"                  %% "http4s-blaze-client"         % "0.12.1",
   "com.lihaoyi"                 %% "upickle"                     % "0.3.8",
   "com.github.julien-truffaut"  %% "monocle-core"                % "1.1.1",
   "com.github.julien-truffaut"  %% "monocle-macro"               % "1.1.1",
