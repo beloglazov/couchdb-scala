@@ -16,8 +16,6 @@
 
 package com.ibm.couchdb
 
-import sun.misc.BASE64Decoder
-
 import scalaz.\/
 
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
@@ -65,14 +63,12 @@ case class CouchDocsIncludesMissing[K, V, D](offset: Int,
 }
 
 case class CouchAttachment(content_type: String,
-                           revpos: Int,
-                           digest: String,
+                           revpos: Int = -1,
+                           digest: String = "",
                            data: String = "",
                            length: Int = -1,
                            stub: Boolean = false) {
-  private val decoder = new BASE64Decoder()
-
-  def toBytes: Array[Byte] = decoder.decodeBuffer(data)
+  def toBytes: Array[Byte] = java.util.Base64.getDecoder.decode(data)
 }
 
 case class CouchView(map: String, reduce: String = "")
