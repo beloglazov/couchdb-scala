@@ -548,11 +548,10 @@ If you are an IBMer, please contact us directly as the contribution process is
 slightly different.
 
 
-## Author
+## Contributors
 
-The project has been developed by [Anton Beloglazov](http://beloglazov.info/).
-
-For more open-source projects from IBM, head over to (http://ibm.github.io).
+  - [Anton Beloglazov](http://beloglazov.info/) (@beloglazov)
+  - Ermyas Abebe (@ermyas)
 
 
 ## Copyright and license
