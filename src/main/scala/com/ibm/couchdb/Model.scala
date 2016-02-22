@@ -75,7 +75,7 @@ case class CouchAttachment(content_type: String,
   def toBytes: Array[Byte] = decoder.decodeBuffer(data)
 }
 
-case class CouchView(map: String, reduce: String = "")
+case class CouchView(map: String, reduce: Option[String] = None)
 
 case class CouchDesign(name: String,
                        _id: String = "",

@@ -42,6 +42,37 @@ trait Fixtures {
     val names    = "names"
     val compound = "compound"
     val reduced  = "reduced"
+
+    val namesView = CouchView(
+                               map =
+                                 """
+                                   |function(doc) {
+                                   | emit(doc.doc.name, doc.doc.name);
+                                   |}
+                                 """.stripMargin)
+
+    val reducedView = CouchView(
+                                 map =
+                                   """
+                                     |function(doc) {
+                                     | emit(doc._id, doc.doc.age);
+                                     |}
+                                   """.stripMargin,
+                                 reduce = Some(
+                                   """
+                                     |function(key, values, rereduce) {
+                                     | return sum(values);
+                                     |}
+                                   """.stripMargin))
+
+    val compoundView = CouchView(
+                                  map =
+                                    """
+                                      |function(doc) {
+                                      | var d = doc.doc;
+                                      | emit([d.age, d.name], d);
+                                      |}
+                                    """.stripMargin)
   }
 
   object FixShows {
@@ -56,30 +87,10 @@ trait Fixtures {
     name = "test-design",
 
     views = Map(
-      FixViews.names → CouchView(map =
-        """
-        |function(doc) {
-        | emit(doc.doc.name, doc.doc.name);
-        |}
-        """.stripMargin),
-      FixViews.reduced → CouchView(map =
-        """
-        |function(doc) {
-        | emit(doc._id, doc.doc.age);
-        |}
-        """.stripMargin, reduce =
-        """
-        |function(key, values, rereduce) {
-        | return sum(values);
-        |}
-        """.stripMargin),
-      FixViews.compound → CouchView(map =
-        """
-          |function(doc) {
-          | var d = doc.doc;
-          | emit([d.age, d.name], d);
-          |}
-        """.stripMargin)),
+                 FixViews.names → FixViews.namesView,
+                 FixViews.reduced → FixViews.reducedView,
+                 FixViews.compound → FixViews.compoundView
+               ),
 
     shows = Map(
       FixShows.csv →

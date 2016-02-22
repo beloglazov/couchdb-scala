@@ -16,6 +16,7 @@
 
 package com.ibm.couchdb.api.builders
 
+import com.ibm.couchdb.Req.DocViewWithKeys
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
@@ -25,8 +26,9 @@ import scalaz.concurrent.Task
 
 case class ViewQueryBuilder[K, V](client: Client,
                                   db: String,
-                                  design: String,
-                                  view: String,
+                                  design: Option[String],
+                                  view: Option[String],
+                                  temporaryView: Option[CouchView] = None,
                                   params: Map[String, String] = Map.empty[String, String])
                                  (implicit
                                   kr: R[K],
@@ -133,11 +135,34 @@ case class ViewQueryBuilder[K, V](client: Client,
     queryByIds[CouchDocs[K, V, D]](keys, includeDocs().params)
   }
 
-  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = temporaryView match {
+    case None => query[Q](client, db, url(db, view, design), ps)
+    case Some(t) => queryByPost[CouchView, Q](client, db, url(db, view, design), t, ps)
   }
 
-  private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
-    queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
+  private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = temporaryView match {
+    case None => queryByIds[K, Q](client, db, url(db, view, design), ids, ps)
+    case Some(t) => queryByPost[DocViewWithKeys[K], Q](
+                                                        client, db, url(db, view, design),
+                                                        DocViewWithKeys(keys = ids, t), ps)
+  }
+
+  def url(db: String, view: Option[String], design: Option[String]): String = (view, design) match {
+    case (Some(v), Some(d)) => s"/$db/_design/$d/_view/$v"
+    case _ => s"/$db/_temp_view"
+  }
+}
+
+object ViewQueryBuilder {
+  def apply[K, V](client: Client, db: String, design: String, view: String)
+                 (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]],
+                  dkw: W[Req.DocKeys[K]]): ViewQueryBuilder[K, V] = {
+    new ViewQueryBuilder(client, db, design = Some(design), view = Some(view))
+  }
+
+  def apply[K, V](client: Client, db: String, view: CouchView)
+                 (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]],
+                  dkw: W[Req.DocKeys[K]]): ViewQueryBuilder[K, V] = {
+    new ViewQueryBuilder(client, db, design = None, view = None, temporaryView = Some(view))
   }
 }

@@ -34,6 +34,10 @@ trait QueryStrategy {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask[Q]
     else
-      client.post[Req.DocKeys[K], Q](url, Status.Ok, Req.DocKeys[K](ids), ps.toSeq)
+      queryByPost[Req.DocKeys[K], Q](client, db, url, Req.DocKeys[K](ids), ps)
+  }
+
+  def queryByPost[B: W, Q: R](client: Client, db: String, url: String, body: B, ps: Map[String, String]): Task[Q] = {
+    client.post[B, Q](url, Status.Ok, body, ps.toSeq)
   }
 }
