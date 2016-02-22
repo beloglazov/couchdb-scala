@@ -550,8 +550,8 @@ slightly different.
 
 ## Contributors
 
-  - [Anton Beloglazov](http://beloglazov.info/) (@beloglazov)
-  - Ermyas Abebe (@ermyas)
+  - [Anton Beloglazov](http://beloglazov.info/) ([@beloglazov](https://github.com/beloglazov))
+  - Ermyas Abebe ([@ermyas](https://github.com/ermyas))
 
 
 ## Copyright and license
