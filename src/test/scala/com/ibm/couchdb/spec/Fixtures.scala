@@ -87,13 +87,13 @@ trait Fixtures {
     name = "test-design",
 
     views = Map(
-                 FixViews.names → FixViews.namesView,
-                 FixViews.reduced → FixViews.reducedView,
-                 FixViews.compound → FixViews.compoundView
+                 FixViews.names -> FixViews.namesView,
+                 FixViews.reduced -> FixViews.reducedView,
+                 FixViews.compound -> FixViews.compoundView
                ),
 
     shows = Map(
-      FixShows.csv →
+      FixShows.csv ->
         """
           |function(doc, req) {
           | if (doc !== null && doc.kind == "Person") {
@@ -109,7 +109,7 @@ trait Fixtures {
         """.stripMargin),
 
     lists = Map(
-      FixLists.csvAll →
+      FixLists.csvAll ->
         """
           |function(head, req) {
           | var row = getRow();
