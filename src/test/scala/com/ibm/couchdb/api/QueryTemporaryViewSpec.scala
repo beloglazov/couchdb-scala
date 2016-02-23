@@ -37,7 +37,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
 
   "Query Temporary View API" >> {
 
-    "Query a view" >> {
+    "Query a temporary view" >> {
       val docs = awaitRight(namesView.query)
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
@@ -47,20 +47,20 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
     }
 
-    "Query a view with reducer" >> {
+    "Query a temporary view with reducer" >> {
       val docs = awaitRight(aggregateView.queryWithReduce[Int])
       docs.rows must haveLength(1)
       docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
     }
 
-    "Query a view with reducer given keys" >> {
+    "Query a temporary view with reducer given keys" >> {
       val docs = awaitRight(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
       docs.rows must haveLength(2)
       docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
       docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
     }
 
-    "Query a view in the descending order" >> {
+    "Query a temporary view in the descending order" >> {
       val docs = awaitRight(namesView.descending().query)
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
@@ -70,7 +70,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
     }
 
-    "Query a view with compound keys and values" >> {
+    "Query a temporary view with compound keys and values" >> {
       val docs = awaitRight(compoundView.query)
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
@@ -79,7 +79,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) must contain(allOf(fixAlice, fixBob, fixCarl))
     }
 
-    "Query a view and select by key" >> {
+    "Query a temporary view and select by key" >> {
       val docs1 = awaitRight(namesView.key("Alice").query)
       docs1.offset mustEqual 0
       docs1.total_rows mustEqual 3
@@ -93,7 +93,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs2.rows.head.key mustEqual ((30, "Bob"))
     }
 
-    "Query a view and include documents" >> {
+    "Query a temporary view and include documents" >> {
       val docs = awaitRight(namesView.queryIncludeDocs[FixPerson])
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
@@ -103,7 +103,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob, fixCarl)
     }
 
-    "Query a view with a set of keys" >> {
+    "Query a temporary view with a set of keys" >> {
       val docs = awaitRight(namesView.query(Seq(fixAlice.name, fixBob.name)))
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
@@ -112,7 +112,7 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
     }
 
-    "Query a view with a set of keys and include documents" >> {
+    "Query a temporary view with a set of keys and include documents" >> {
       val docs = awaitRight(namesView.queryIncludeDocs[FixPerson](Seq(fixAlice.name, fixBob.name)))
       docs.offset mustEqual 0
       docs.total_rows mustEqual 3
