@@ -22,5 +22,5 @@ object Req {
 
   case class DocKeys[K](keys: Seq[K])
 
-  case class DocViewWithKeys[K](keys: Seq[K], view: CouchView)
+  case class ViewWithKeys[K](keys: Seq[K], view: CouchView)
 }

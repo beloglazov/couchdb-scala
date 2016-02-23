@@ -16,7 +16,6 @@
 
 package com.ibm.couchdb.api.builders
 
-import com.ibm.couchdb.Req.DocViewWithKeys
 import com.ibm.couchdb._
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}

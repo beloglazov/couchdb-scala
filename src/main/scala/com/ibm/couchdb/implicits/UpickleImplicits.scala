@@ -16,8 +16,7 @@
 
 package com.ibm.couchdb.implicits
 
-import com.ibm.couchdb.Req.DocViewWithKeys
-import com.ibm.couchdb.{CouchKeyError, CouchKeyVal, CouchKeyValWithDoc, CouchView}
+import com.ibm.couchdb._
 import org.http4s.Status
 import upickle.Js.Value
 import upickle.default.Aliases.{R, W}
@@ -36,9 +35,9 @@ trait UpickleImplicits extends Types {
     case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
   }
 
-  implicit def dockViewWithKeysW[K: W]: W[DocViewWithKeys[K]] =
-    Wr[DocViewWithKeys[K]] {
-                             case DocViewWithKeys(keys, CouchView(map, reduce)) =>
+  implicit def dockViewWithKeysW[K: W]: W[Req.ViewWithKeys[K]] =
+    Wr[Req.ViewWithKeys[K]] {
+                              case Req.ViewWithKeys(keys, CouchView(map, reduce)) =>
                                Js.Obj(mapReduceParams(map, reduce) ++ Seq("keys" -> wJs(keys)): _*)
                            }
 

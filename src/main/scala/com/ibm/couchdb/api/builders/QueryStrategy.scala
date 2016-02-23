@@ -16,8 +16,8 @@
 
 package com.ibm.couchdb.api.builders
 
+import com.ibm.couchdb.Req
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.{Req, Res}
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default._
