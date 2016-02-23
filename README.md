@@ -548,14 +548,13 @@ If you are an IBMer, please contact us directly as the contribution process is
 slightly different.
 
 
-## Author
+## Contributors
 
-The project has been developed by [Anton Beloglazov](http://beloglazov.info/).
-
-For more open-source projects from IBM, head over to (http://ibm.github.io).
+  - [Anton Beloglazov](http://beloglazov.info/) ([@beloglazov](https://github.com/beloglazov))
+  - Ermyas Abebe ([@ermyas](https://github.com/ermyas))
 
 
 ## Copyright and license
 
-© Copyright 2015 IBM Corporation. Distributed under the [Apache 2.0
+© Copyright 2015 IBM Corporation, Google Inc. Distributed under the [Apache 2.0
 license](LICENSE).

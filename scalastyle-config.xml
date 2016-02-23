@@ -10,7 +10,7 @@
   <parameters>
    <parameter name="regex">true</parameter>
    <parameter name="header"><![CDATA[/\*
- \* Copyright 20\d{2} IBM Corporation
+ \* Copyright 20\d{2} IBM Corporation(?:, Google Inc\.)?
  \*
  \* Licensed under the Apache License, Version 2\.0 \(the \"License\"\);
  \* you may not use this file except in compliance with the License\.

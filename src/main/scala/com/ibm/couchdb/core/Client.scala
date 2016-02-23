@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class Client(config: Config) {
 
   def req(request: Request, expectedStatus: Status): Task[Response] = {
     log.debug(s"Making a request $request")
-    client(request) flatMap { response =>
+    client.toHttpService.run(request) flatMap { response =>
       log.debug(s"Received response $response")
       if (response.status == expectedStatus) {
         Task.now(response)
