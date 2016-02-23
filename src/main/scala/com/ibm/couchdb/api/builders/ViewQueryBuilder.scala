@@ -131,8 +131,8 @@ case class ViewQueryBuilder[K, V] private(client: Client,
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = temporaryView match {
-    case Some(t) => query[CouchView, Q](client, db, url, t, ps)
-    case None => query[Q](client, db, url, ps)
+    case Some(t) => postQuery[CouchView, Q](client, db, url, t, ps)
+    case None => postQuery[Q](client, db, url, ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
@@ -140,11 +140,12 @@ case class ViewQueryBuilder[K, V] private(client: Client,
       Res.Error("not_found", "No IDs specified").toTask
     else {
       temporaryView match {
-        case Some(t) => query[DocViewWithKeys[K], Q](client, db, url, DocViewWithKeys(keys = ids, t), ps)
+        case Some(t) => postQuery[Req.ViewWithKeys[K], Q](client, db, url, Req.ViewWithKeys(keys = ids, t), ps)
         case None => queryByIds[K, Q](client, db, url, ids, ps)
       }
     }
   }
+
   private def url: String = (view, design) match {
     case (Some(v), Some(d)) => s"/$db/_design/$d/_view/$v"
     case _ => s"/$db/_temp_view"
