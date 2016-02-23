@@ -31,13 +31,10 @@ trait QueryStrategy {
   }
 
   def queryByIds[K: W, Q: R](client: Client, db: String, url: String, ids: Seq[K], ps: Map[String, String]): Task[Q] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[Q]
-    else
-      queryByPost[Req.DocKeys[K], Q](client, db, url, Req.DocKeys[K](ids), ps)
+    query[Req.DocKeys[K], Q](client, db, url, Req.DocKeys[K](ids), ps)
   }
 
-  def queryByPost[B: W, Q: R](client: Client, db: String, url: String, body: B, ps: Map[String, String]): Task[Q] = {
+  def query[B: W, Q: R](client: Client, db: String, url: String, body: B, ps: Map[String, String]): Task[Q] = {
     client.post[B, Q](url, Status.Ok, body, ps.toSeq)
   }
 }
