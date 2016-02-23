@@ -58,12 +58,12 @@ trait Fixtures {
                                      | emit(doc._id, doc.doc.age);
                                      |}
                                    """.stripMargin,
-                                 reduce = Some(
+                                 reduce =
                                    """
                                      |function(key, values, rereduce) {
                                      | return sum(values);
                                      |}
-                                   """.stripMargin))
+                                   """.stripMargin)
 
     val compoundView = CouchView(
                                   map =

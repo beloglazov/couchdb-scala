@@ -46,12 +46,9 @@ trait UpickleImplicits extends Types {
     { case CouchView(map, reduce) => Js.Obj(mapReduceParams(map, reduce): _*)
     }
 
-  private def mapReduceParams(map: String, reduce: Option[String]): Seq[(String, Value)] = {
+  private def mapReduceParams(map: String, reduce: String = ""): Seq[(String, Value)] = {
     val m = Seq("map" -> wJs(map))
-    reduce match {
-      case Some(r) => m ++ Seq("reduce" -> wJs(r))
-      case None => m.to
-    }
+    if (reduce.isEmpty) m else m ++ Seq("reduce" -> wJs(reduce))
   }
 
   implicit def couchKeyValOrErrorR[K: R, V: R]: Rr[\/[CouchKeyError[K], CouchKeyVal[K, V]]] =
