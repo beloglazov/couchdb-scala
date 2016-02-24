@@ -16,6 +16,7 @@
 
 package com.ibm.couchdb.api
 
+import com.ibm.couchdb.CouchView
 import com.ibm.couchdb.api.builders.{ListQueryBuilder, ShowQueryBuilder, ViewQueryBuilder}
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R,W}
@@ -30,6 +31,11 @@ class Query(client: Client, db: String) {
                  vr: R[V]): Option[ViewQueryBuilder[K, V]] = {
     if (design.isEmpty || view.isEmpty) none[ViewQueryBuilder[K, V]]
     else ViewQueryBuilder[K, V](client, db, design, view).some
+  }
+
+  def temporaryView[K, V](view: CouchView)(implicit kr: R[K], kw: W[K], vr: R[V]): Option[ViewQueryBuilder[K, V]] = {
+    if (view.map.isEmpty) none[ViewQueryBuilder[K, V]]
+    else ViewQueryBuilder[K, V](client, db, view).some
   }
 
   def show(design: String, show: String): Option[ShowQueryBuilder] = {

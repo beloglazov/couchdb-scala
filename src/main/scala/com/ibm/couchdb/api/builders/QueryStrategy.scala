@@ -16,8 +16,8 @@
 
 package com.ibm.couchdb.api.builders
 
+import com.ibm.couchdb.Req
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.{Req, Res}
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default._
@@ -26,14 +26,18 @@ import scalaz.concurrent.Task
 
 trait QueryStrategy {
 
-  def query[Q: R](client: Client, db: String, url: String, ps: Map[String, String]): Task[Q] = {
+  def postQuery[Q: R](client: Client, db: String, url: String,
+                      ps: Map[String, String]): Task[Q] = {
     client.get[Q](url, Status.Ok, ps.toSeq)
   }
 
-  def queryByIds[K: W, Q: R](client: Client, db: String, url: String, ids: Seq[K], ps: Map[String, String]): Task[Q] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask[Q]
-    else
-      client.post[Req.DocKeys[K], Q](url, Status.Ok, Req.DocKeys[K](ids), ps.toSeq)
+  def queryByIds[K: W, Q: R](client: Client, db: String, url: String, ids: Seq[K],
+                             ps: Map[String, String]): Task[Q] = {
+    postQuery[Req.DocKeys[K], Q](client, db, url, Req.DocKeys(ids), ps)
+  }
+
+  def postQuery[B: W, Q: R](client: Client, db: String, url: String, body: B,
+                            ps: Map[String, String]): Task[Q] = {
+    client.post[B, Q](url, Status.Ok, body, ps.toSeq)
   }
 }
