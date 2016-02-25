@@ -87,7 +87,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     get.query[D](id)
   }
 
-  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db)
+  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db, typeMapping)
 
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     getMany.queryIncludeDocs[D](ids)

@@ -132,6 +132,21 @@ class DocumentsSpec extends CouchDbSpecification {
       docs.getDocsData mustEqual Seq(fixAlice, fixAlice)
     }
 
+    "Get all documents by type and include the doc data" >> {
+      clear()
+      awaitRight(documents.create(fixAlice))
+      awaitRight(documents.create(fixBob))
+      val created3 = awaitRight(documents.create(fixProfessorX))
+      val created4 = awaitRight(documents.create(fixMagneto))
+      val docs = awaitRight(documents.getMany.queryByTypeIncludeDocs[FixXPerson])
+      docs.total_rows mustEqual 4
+      docs.rows must haveLength(2)
+      docs.rows.map(_.value) mustEqual Seq(created3.id, created4.id)
+      docs.rows.map(_.doc.doc) mustEqual Seq(fixProfessorX, fixMagneto)
+      docs.getDocs.map(_.doc) mustEqual Seq(fixProfessorX, fixMagneto)
+      docs.getDocsData mustEqual Seq(fixProfessorX, fixMagneto)
+    }
+
     "Get multiple documents by IDs and include the doc data" >> {
       clear()
       val createdAlice = awaitRight(documents.create(fixAlice))

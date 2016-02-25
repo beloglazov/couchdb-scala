@@ -17,15 +17,28 @@
 package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
+import com.ibm.couchdb.api.Query
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
+import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
 case class GetManyDocumentsQueryBuilder(client: Client,
                                         db: String,
+                                        typeMappings: TypeMapping,
                                         params: Map[String, String] = Map.empty[String, String]) extends QueryStrategy {
+
+  lazy val tempTypeFilterView: CouchView = {
+    CouchView(
+               map = String.format(
+                                    s"""
+                                        function(doc) {
+                                            emit([doc.kind, doc._id], doc._id);
+                                       }
+                                      """.stripMargin))
+  }
 
   def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
     set("conflicts", conflicts)
@@ -103,12 +116,35 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs().params)
   }
 
+  def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
+                                        (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]):
+  Task[CouchDocs[K, V, D]] = {
+    TypeMapping.getMappingFor(tag.runtimeClass, typeMappings) match {
+      case Some(k) =>
+        val view = typeFilterView
+        queryByType[K, V, D](view, k)
+      case None => Res.Error("not_found", s"type mapping not found").toTask[CouchDocs[K, V, D]]
+    }
+  }
+
+  def queryByTypeIncludeDocs[D: R](implicit tag: ClassTag[D]): Task[CouchDocs[(String, String), String, D]] = {
+    queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
+  }
+
   def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
   def queryIncludeDocsAllowMissing[D: R](ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
+  }
+
+  private def queryByType[K, V, D: R](view: CouchView, kind: String)(implicit kr: R[K], kw: W[K], vr: R[V]):
+  Task[CouchDocs[K, V, D]] = {
+    new Query(client, db).temporaryView[K, V](view) match {
+      case Some(v) => v.startKey(Seq(kind)).endKey(Tuple2(kind,{})).queryIncludeDocs
+      case None => Res.Error("not_found", "invalid view specified").toTask
+    }
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
