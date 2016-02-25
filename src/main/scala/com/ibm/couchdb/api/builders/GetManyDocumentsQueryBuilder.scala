@@ -112,6 +112,7 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchKeyValsIncludesMissing[String, CouchDocRev]](ids, params)
   }
 
+  @deprecated("Fails if different document types exist in the Db. Use `queryByTypeIncludeDocs[D]` instead", "0.7.1")
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
     queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs().params)
   }
