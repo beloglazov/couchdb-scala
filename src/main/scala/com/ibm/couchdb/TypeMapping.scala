@@ -27,5 +27,8 @@ object TypeMapping {
       mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
   }
 
+  def getMappingFor(t: Class[_], typeMapping: TypeMapping): Option[String] = {
+    typeMapping.types.get(t.getCanonicalName)
+  }
 }
 
