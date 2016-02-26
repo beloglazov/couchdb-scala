@@ -122,15 +122,11 @@ case class GetManyDocumentsQueryBuilder(client: Client,
   }
 
   def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
-                                        (implicit tag: ClassTag[D],
-                                         kr: R[K], kw: W[K], vr: R[V]):
+                                        (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]):
   Task[CouchDocs[K, V, D]] = {
     TypeMapping.getMappingFor(tag.runtimeClass, typeMappings) match {
-      case Some(k) =>
-        val view = typeFilterView
-        queryByType[K, V, D](view, k)
-      case None => Res.Error("not_found", s"type mapping not found").
-                   toTask[CouchDocs[K, V, D]]
+      case Some(k) => queryByType[K, V, D](typeFilterView, k)
+      case None => Res.Error("not_found", s"type mapping not found").toTask[CouchDocs[K, V, D]]
     }
   }
 
@@ -146,9 +142,7 @@ case class GetManyDocumentsQueryBuilder(client: Client,
 
   def queryIncludeDocsAllowMissing[D: R](ids: Seq[String]):
   Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
-    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](
-                                                                  ids,
-                                                                  includeDocs().params)
+    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
   private def queryByType[K, V, D: R](view: CouchView, kind: String)
