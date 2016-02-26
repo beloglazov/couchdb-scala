@@ -135,8 +135,7 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
-  def queryIncludeDocs[D: R](ids: Seq[String]):
-  Task[CouchDocs[String, CouchDocRev, D]] = {
+  def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
