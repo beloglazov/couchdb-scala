@@ -31,6 +31,8 @@ case class GetManyDocumentsQueryBuilder(client: Client,
                                         params: Map[String, String] =
                                         Map.empty[String, String]) extends QueryStrategy {
 
+  private val log = org.log4s.getLogger
+
   lazy val tempTypeFilterView: CouchView = {
     CouchView(
                map = String.format(
@@ -132,6 +134,11 @@ case class GetManyDocumentsQueryBuilder(client: Client,
 
   def queryByTypeIncludeDocs[D: R](implicit tag: ClassTag[D]):
   Task[CouchDocs[(String, String), String, D]] = {
+    log.warn(
+              "Only use `queryByTypeIncludeDocs[D: R]` for development purposes. It uses " +
+              "temporary views to perform type based filters and is inefficient. " +
+              "Instead, create a permanent view for type based filtering and use the " +
+              "`queryByTypeIncludeDocs[D: R] (typeFilterView: CouchView) method.")
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
