@@ -16,7 +16,11 @@
 
 package com.ibm.couchdb
 
-final class TypeMapping private(val types: Map[String, String])
+final class TypeMapping private(val types: Map[String, String]) {
+  def forType(t: Class[_]): Option[String] = {
+    types.get(t.getCanonicalName)
+  }
+}
 
 object TypeMapping {
 
@@ -27,8 +31,5 @@ object TypeMapping {
       mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
   }
 
-  def getMappingFor(t: Class[_], typeMapping: TypeMapping): Option[String] = {
-    typeMapping.types.get(t.getCanonicalName)
-  }
 }
 
