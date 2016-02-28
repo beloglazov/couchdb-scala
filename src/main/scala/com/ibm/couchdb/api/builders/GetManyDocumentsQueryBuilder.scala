@@ -126,7 +126,7 @@ case class GetManyDocumentsQueryBuilder(client: Client,
   def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
                                         (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]):
   Task[CouchDocs[K, V, D]] = {
-    TypeMapping.forType(tag.runtimeClass, typeMappings) match {
+    typeMappings.forType(tag.runtimeClass) match {
       case Some(k) => queryByType[K, V, D](typeFilterView, k)
       case None => Res.Error("not_found", s"type mapping not found").toTask[CouchDocs[K, V, D]]
     }
