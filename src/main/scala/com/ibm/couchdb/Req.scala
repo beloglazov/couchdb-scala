@@ -22,4 +22,6 @@ object Req {
 
   case class DocKeys[K](keys: Seq[K])
 
+  case class Attachment(data: Array[Byte], content_type: String = "")
+
 }

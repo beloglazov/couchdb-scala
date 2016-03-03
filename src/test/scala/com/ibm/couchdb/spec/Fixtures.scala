@@ -117,8 +117,11 @@ trait Fixtures {
 
   )
 
-  val fixAttachmentName        = "attachment"
-  val fixAttachmentData        = Array[Byte](-1, 0, 1, 2, 3)
-  val fixAttachmentContentType = "image/jpg"
+  val fixAttachmentName          = "attachment"
+  val fixAttachmentData          = Array[Byte](-1, 0, 1, 2, 3)
+  val fixAttachmentContentType   = "image/jpg"
+  val fixAttachment2Name         = "attachment2"
+  val fixAttachment2Data         = Array[Byte](-1, 0, 1, 2, 3, 4, 5)
+  val fixAttachment2ContentType  = "image/png"
 
 }

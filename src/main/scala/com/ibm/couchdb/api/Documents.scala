@@ -37,13 +37,14 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     server.mkUuid flatMap (create(obj, _))
   }
 
-  def create[D: W](obj: D, attachments: Map[String, Array[Byte]]): Task[Res.DocOk] = {
+  def create[D: W](obj: D, attachments: Map[String, Req.Attachment]): Task[Res.DocOk] = {
     server.mkUuid flatMap (create(obj, _, attachments))
   }
 
   def create[D: W](obj: D,
                    id: String,
-                   attachments: Map[String, Array[Byte]] = Map.empty[String, Array[Byte]]): Task[Res.DocOk] = {
+                   attachments: Map[String, Req.Attachment] = Map.empty[String, Req.Attachment]
+                  ): Task[Res.DocOk] = {
     val cl = getClassName(obj)
     if (!types.contains(cl))
       Res.Error("cannot_create", "No type mapping for " + cl + " available: " + types).toTask[Res.DocOk]
@@ -52,8 +53,8 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
         if (attachments.nonEmpty)
           attachments.mapValues(x =>
             CouchAttachment(
-              content_type = "text\\/plain",
-              data = java.util.Base64.getEncoder.encodeToString(x)))
+              data = java.util.Base64.getEncoder.encodeToString(x.data),
+              content_type = x.content_type))
         else Map.empty[String, CouchAttachment]
       client.put[CouchDoc[D], Res.DocOk](
         s"/$db/$id",
