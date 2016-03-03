@@ -35,12 +35,12 @@ case class GetManyDocumentsQueryBuilder(client: Client,
 
   lazy val tempTypeFilterView: CouchView = {
     CouchView(
-               map = String.format(
-                                    s"""
-                                        function(doc) {
-                                            emit([doc.kind, doc._id], doc._id);
-                                       }
-                                      """.stripMargin))
+               map =
+                 """
+                   |function(doc) {
+                   | emit([doc.kind, doc._id], doc._id);
+                   |}
+                 """.stripMargin)
   }
 
   def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
