@@ -16,10 +16,17 @@
 
 package com.ibm.couchdb
 
-final class TypeMapping private(val types: Map[String, String]) {
+final class TypeMapping private(private val types: Map[String, String]) {
   def forType(t: Class[_]): Option[String] = {
     types.get(t.getCanonicalName)
   }
+
+  def contains(t: Class[_]): Boolean = {
+    types.contains(t.getCanonicalName)
+  }
+
+  override def toString: String = types.toString
+
 }
 
 object TypeMapping {
