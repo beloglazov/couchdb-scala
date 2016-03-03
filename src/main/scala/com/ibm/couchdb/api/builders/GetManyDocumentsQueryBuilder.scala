@@ -133,11 +133,11 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     }
   }
 
-  def queryByTypeIncludeDocs[D: R](implicit tag: ClassTag[D]):
+  def queryByTypeIncludeDocsWithTemporaryView[D: R](implicit tag: ClassTag[D]):
   Task[CouchDocs[(String, String), String, D]] = {
     log.warn(
-              "Only use `queryByTypeIncludeDocs[D: R]` for development purposes. It uses " +
-              "temporary views to perform type based filters and is inefficient. " +
+              "Only use `queryByTypeIncludeDocsWithTemporaryView[D: R]` for development purposes." +
+              "It uses temporary views to perform type based filters and is inefficient. " +
               "Instead, create a permanent view for type based filtering and use the " +
               "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)

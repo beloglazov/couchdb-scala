@@ -137,7 +137,7 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val fixXMen = Seq(fixProfessorX, fixMagneto)
       val createdXMen = awaitRight(documents.createMany(fixXMen))
-      val docs = awaitRight(documents.getMany.queryByTypeIncludeDocs[FixXPerson])
+      val docs = awaitRight(documents.getMany.queryByTypeIncludeDocsWithTemporaryView[FixXPerson])
       docs.total_rows mustEqual 4
       docs.rows must haveLength(2)
       docs.rows.map(_.value) mustEqual createdXMen.map(_.id)
