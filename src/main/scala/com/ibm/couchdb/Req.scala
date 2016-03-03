@@ -18,10 +18,12 @@ package com.ibm.couchdb
 
 object Req {
 
+  case class Attachment(data: Array[Byte], content_type: String = "")
+
   case class Docs[D](docs: Seq[CouchDoc[D]])
 
   case class DocKeys[K](keys: Seq[K])
 
-  case class Attachment(data: Array[Byte], content_type: String = "")
+  case class ViewWithKeys[K](keys: Seq[K], view: CouchView)
 
 }

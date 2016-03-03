@@ -23,17 +23,14 @@ import upickle.default.write
 
 import scalaz.concurrent.Task
 
-case class ViewQueryBuilder[K, V](client: Client,
-                                  db: String,
-                                  design: String,
-                                  view: String,
-                                  params: Map[String, String] = Map.empty[String, String])
-                                 (implicit
-                                  kr: R[K],
-                                  kw: W[K],
-                                  vr: R[V],
-                                  cdr: R[CouchKeyVals[K, V]],
-                                  dkw: W[Req.DocKeys[K]]) extends QueryStrategy {
+case class ViewQueryBuilder[K, V] private(client: Client,
+                                          db: String,
+                                          design: Option[String],
+                                          view: Option[String],
+                                          temporaryView: Option[CouchView] = None,
+                                          params: Map[String, String] = Map.empty[String, String])
+                                         (implicit kr: R[K], kw: W[K], vr: R[V],
+                                          cdr: R[CouchKeyVals[K, V]], dkw: W[Req.DocKeys[K]]) extends QueryStrategy {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -133,11 +130,38 @@ case class ViewQueryBuilder[K, V](client: Client,
     queryByIds[CouchDocs[K, V, D]](keys, includeDocs().params)
   }
 
-  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    query[Q](client, db, s"/$db/_design/$design/_view/$view", ps)
+  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = temporaryView match {
+    case Some(t) => postQuery[CouchView, Q](client, db, url, t, ps)
+    case None => postQuery[Q](client, db, url, ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
-    queryByIds[K, Q](client, db, s"/$db/_design/$design/_view/$view", ids, ps)
+    if (ids.isEmpty)
+      Res.Error("not_found", "No IDs specified").toTask
+    else {
+      temporaryView match {
+        case Some(t) => postQuery[Req.ViewWithKeys[K], Q](client, db, url, Req.ViewWithKeys(keys = ids, t), ps)
+        case None => queryByIds[K, Q](client, db, url, ids, ps)
+      }
+    }
+  }
+
+  private def url: String = (view, design) match {
+    case (Some(v), Some(d)) => s"/$db/_design/$d/_view/$v"
+    case _ => s"/$db/_temp_view"
+  }
+}
+
+object ViewQueryBuilder {
+  def apply[K, V](client: Client, db: String, design: String, view: String)
+                 (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]],
+                  dkw: W[Req.DocKeys[K]]): ViewQueryBuilder[K, V] = {
+    new ViewQueryBuilder(client, db, design = Option(design), view = Option(view))
+  }
+
+  def apply[K, V](client: Client, db: String, view: CouchView)
+                 (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]],
+                  dkw: W[Req.DocKeys[K]]): ViewQueryBuilder[K, V] = {
+    new ViewQueryBuilder(client, db, temporaryView = Option(view), design = None, view = None)
   }
 }

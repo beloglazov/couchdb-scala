@@ -112,10 +112,13 @@ case class GetManyDocumentsQueryBuilder(client: Client,
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    query[Q](client, db, s"/$db/_all_docs", ps)
+    postQuery[Q](client, db, s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
-    queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
+    if (ids.isEmpty)
+      Res.Error("not_found", "No IDs specified").toTask
+    else
+      queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
   }
 }
