@@ -138,7 +138,7 @@ case class GetManyDocumentsQueryBuilder(client: Client,
               "Only use `queryByTypeIncludeDocs[D: R]` for development purposes. It uses " +
               "temporary views to perform type based filters and is inefficient. " +
               "Instead, create a permanent view for type based filtering and use the " +
-              "`queryByTypeIncludeDocs[D: R] (typeFilterView: CouchView) method.")
+              "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
