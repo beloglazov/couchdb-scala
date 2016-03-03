@@ -134,17 +134,16 @@ class DocumentsSpec extends CouchDbSpecification {
 
     "Get all documents by type and include the doc data" >> {
       clear()
-      awaitRight(documents.create(fixAlice))
-      awaitRight(documents.create(fixBob))
-      val created3 = awaitRight(documents.create(fixProfessorX))
-      val created4 = awaitRight(documents.create(fixMagneto))
+      awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
+      val fixXMen = Seq(fixProfessorX, fixMagneto)
+      val createdXMen = awaitRight(documents.createMany(fixXMen))
       val docs = awaitRight(documents.getMany.queryByTypeIncludeDocs[FixXPerson])
       docs.total_rows mustEqual 4
       docs.rows must haveLength(2)
-      docs.rows.map(_.value) mustEqual Seq(created3.id, created4.id)
-      docs.rows.map(_.doc.doc) mustEqual Seq(fixProfessorX, fixMagneto)
-      docs.getDocs.map(_.doc) mustEqual Seq(fixProfessorX, fixMagneto)
-      docs.getDocsData mustEqual Seq(fixProfessorX, fixMagneto)
+      docs.rows.map(_.value) mustEqual createdXMen.map(_.id)
+      docs.rows.map(_.doc.doc) mustEqual fixXMen
+      docs.getDocs.map(_.doc) mustEqual fixXMen
+      docs.getDocsData mustEqual fixXMen
     }
 
     "Get all documents by type and include the doc data, given a permanent type filter view" >> {
