@@ -45,6 +45,7 @@ scalacOptions ++= Seq(
   "-language:implicitConversions",
   "-language:postfixOps",
   "-unchecked",
+//  "-Xfatal-warnings", TODO: Re-enable after deprecated queryIncludeDocs[D: R] is removed
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
