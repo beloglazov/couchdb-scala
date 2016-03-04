@@ -17,10 +17,9 @@
 package com.ibm.couchdb.api
 
 import java.nio.file.{Files, Paths}
-import java.util.Base64
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.api.builders.{GetManyDocumentsQueryBuilder, GetDocumentQueryBuilder}
+import com.ibm.couchdb.api.builders.{GetDocumentQueryBuilder, GetManyDocumentsQueryBuilder}
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
