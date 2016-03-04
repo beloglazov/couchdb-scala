@@ -325,9 +325,11 @@ class DocumentsSpec extends CouchDbSpecification {
     }
 
     "Create and get a document with attachments" >> {
-      val attachments = Map[String, Req.Attachment](
-        fixAttachmentName -> Req.Attachment(fixAttachmentData, fixAttachmentContentType),
-        fixAttachment2Name -> Req.Attachment(fixAttachment2Data, fixAttachment2ContentType))
+      val attachments = Map[String, CouchAttachment](
+        fixAttachmentName -> CouchAttachment.fromBytes(
+          fixAttachmentData, fixAttachmentContentType),
+        fixAttachment2Name -> CouchAttachment.fromBytes(
+          fixAttachment2Data, fixAttachment2ContentType))
       val created = awaitRight(documents.create(fixAlice, attachments))
       val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
       doc._id mustEqual created.id
