@@ -17,6 +17,7 @@
 package com.ibm.couchdb.api
 
 import java.nio.file.{Files, Paths}
+import java.util.Base64
 
 import com.ibm.couchdb._
 import com.ibm.couchdb.api.builders.{GetManyDocumentsQueryBuilder, GetDocumentQueryBuilder}
@@ -28,10 +29,7 @@ import scalaz.concurrent.Task
 
 class Documents(client: Client, db: String, typeMapping: TypeMapping) {
 
-  val types  = typeMapping.types
   val server = new Server(client)
-
-  private def getClassName[D](obj: D): String = obj.getClass.getCanonicalName
 
   def create[D: W](obj: D): Task[Res.DocOk] = {
     server.mkUuid flatMap (create(obj, _))
@@ -41,28 +39,28 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     server.mkUuid flatMap (create(obj, _, attachments))
   }
 
-  def create[D: W](obj: D,
-                   id: String,
-                   attachments: Map[String, Req.Attachment] = Map.empty[String, Req.Attachment]
-                  ): Task[Res.DocOk] = {
-    val cl = getClassName(obj)
-    if (!types.contains(cl))
-      Res.Error("cannot_create", "No type mapping for " + cl + " available: " + types).toTask[Res.DocOk]
-    else {
-      val _attachments =
-        if (attachments.nonEmpty)
-          attachments.mapValues(x =>
-            CouchAttachment(
-              data = java.util.Base64.getEncoder.encodeToString(x.data),
-              content_type = x.content_type))
-        else Map.empty[String, CouchAttachment]
-      client.put[CouchDoc[D], Res.DocOk](
-        s"/$db/$id",
-        Status.Created,
-        CouchDoc[D](obj, types(cl), _attachments = _attachments))
+  def create[D: W](obj: D, id: String, attachments: Map[String, Req.Attachment] = Map.empty)
+  : Task[Res.DocOk] = {
+    typeMapping.forType(obj.getClass) match {
+      case Some(t) =>
+        val _attachments =
+          if (attachments.nonEmpty)
+            attachments.mapValues(x =>
+              CouchAttachment(
+                data = Base64.getEncoder.encodeToString(x.data),
+                content_type = x.content_type))
+          else Map.empty[String, CouchAttachment]
+        client.put[CouchDoc[D], Res.DocOk](
+          s"/$db/$id",
+          Status.Created,
+          CouchDoc[D](obj, t, _attachments = _attachments))
+      case None =>
+        val cl = obj.getClass.getCanonicalName
+        Res.Error(
+          "cannot_create",
+          "No type mapping for " + cl + " available: " + typeMapping).toTask[Res.DocOk]
     }
   }
-
 
   private def postBulk[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
     client.post[Req.Docs[D], Seq[Res.DocOk]](
@@ -75,11 +73,17 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   def createMany[D: W](objs: Seq[D]): Task[Seq[Res.DocOk]] = create(objs.map(("", _)))
 
   private def create[D: W, S](objs: Seq[(String, D)]): Task[Seq[Res.DocOk]] = {
-    objs.find { x => !types.contains(getClassName(x._2)) } match {
+    objs.find { x => !typeMapping.contains(x._2.getClass) } match {
       case Some(missing) =>
         Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
       case None =>
-        postBulk(objs.map { o => CouchDoc[D](_id = o._1, doc = o._2, kind = types(getClassName(o._2))) })
+        postBulk(
+          objs.map { o => CouchDoc[D](
+            _id = o._1,
+            doc = o._2,
+            kind = typeMapping.forType(o._2.getClass).
+              getOrElse(""))
+          })
     }
   }
 
@@ -103,7 +107,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     get.query[D](id)
   }
 
-  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db)
+  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db, typeMapping)
 
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     getMany.queryIncludeDocs[D](ids)
@@ -130,9 +134,9 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   }
 
   def attach[D](obj: CouchDoc[D],
-                name: String,
-                data: Array[Byte],
-                contentType: String = ""): Task[Res.DocOk] = {
+    name: String,
+    data: Array[Byte],
+    contentType: String = ""): Task[Res.DocOk] = {
     if (obj._id.isEmpty)
       Res.Error("cannot_attach", "Document ID must not be empty").toTask[Res.DocOk]
     else {

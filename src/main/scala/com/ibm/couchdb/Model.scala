@@ -16,6 +16,8 @@
 
 package com.ibm.couchdb
 
+import java.util.Base64
+
 import scalaz.\/
 
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
@@ -68,7 +70,7 @@ case class CouchAttachment(content_type: String,
                            data: String = "",
                            length: Int = -1,
                            stub: Boolean = false) {
-  def toBytes: Array[Byte] = java.util.Base64.getDecoder.decode(data)
+  def toBytes: Array[Byte] = Base64.getDecoder.decode(data)
 }
 
 case class CouchView(map: String, reduce: String = "")
