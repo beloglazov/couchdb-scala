@@ -73,6 +73,14 @@ case class CouchAttachment(content_type: String,
   def toBytes: Array[Byte] = Base64.getDecoder.decode(data)
 }
 
+case object CouchAttachment {
+  def fromBytes(data: Array[Byte], content_type: String = ""): CouchAttachment = {
+    CouchAttachment(
+      content_type = content_type,
+      data = Base64.getEncoder.encodeToString(data))
+  }
+}
+
 case class CouchView(map: String, reduce: String = "")
 
 case class CouchDesign(name: String,
