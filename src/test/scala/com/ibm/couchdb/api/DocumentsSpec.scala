@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.ibm.couchdb.api
 
-import com.ibm.couchdb.CouchDoc
+import com.ibm.couchdb.{CouchDoc, Req}
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import monocle.syntax._
 import org.http4s.Status
@@ -80,7 +80,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.getMany[FixPerson](docs.keys.toList))
       created.getDocs.map(_.doc) mustEqual docs.values.toSeq
       created.rows.map(_.id) mustEqual docs.keys.toSeq
-     }
+    }
 
     "Get all documents" >> {
       clear()
@@ -260,7 +260,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(
-        documents.attach(aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
+        documents.attach(
+          aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
         aliceRes._id)
       val doc = awaitRight(documents.get[FixPerson](aliceRes._id))
       doc._id mustEqual aliceRes._id
@@ -278,7 +279,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(
-        documents.attach(aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
+        documents.attach(
+          aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
         aliceRes._id)
       val doc = awaitRight(documents.get.attachments().query[FixPerson](aliceRes._id))
       doc._id mustEqual aliceRes._id
@@ -291,6 +293,29 @@ class DocumentsSpec extends CouchDbSpecification {
       attachment.stub mustEqual false
       attachment.digest must not be empty
       attachment.toBytes mustEqual fixAttachmentData
+    }
+
+    "Create and get a document with attachments" >> {
+      val attachments = Map[String, Req.Attachment](
+        fixAttachmentName -> Req.Attachment(fixAttachmentData, fixAttachmentContentType),
+        fixAttachment2Name -> Req.Attachment(fixAttachment2Data, fixAttachment2ContentType))
+      val created = awaitRight(documents.create(fixAlice, attachments))
+      val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
+      doc._id mustEqual created.id
+      doc._attachments must haveLength(2)
+      doc._attachments must haveKeys(fixAttachmentName, fixAttachment2Name)
+      val attachment = doc._attachments(fixAttachmentName)
+      attachment.content_type mustEqual fixAttachmentContentType
+      attachment.length mustEqual -1
+      attachment.stub mustEqual false
+      attachment.digest must not be empty
+      attachment.toBytes mustEqual fixAttachmentData
+      val attachment2 = doc._attachments(fixAttachment2Name)
+      attachment2.content_type mustEqual fixAttachment2ContentType
+      attachment2.length mustEqual -1
+      attachment2.stub mustEqual false
+      attachment2.digest must not be empty
+      attachment2.toBytes mustEqual fixAttachment2Data
     }
 
     "Delete an attachment to a document" >> {

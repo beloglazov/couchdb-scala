@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ package com.ibm.couchdb
 
 object Req {
 
+  case class Attachment(data: Array[Byte], content_type: String = "")
+
   case class Docs[D](docs: Seq[CouchDoc[D]])
 
   case class DocKeys[K](keys: Seq[K])
 
   case class ViewWithKeys[K](keys: Seq[K], view: CouchView)
+
 }

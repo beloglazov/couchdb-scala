@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.ibm.couchdb.api
 
 import java.nio.file.{Files, Paths}
+import java.util.Base64
 
 import com.ibm.couchdb._
 import com.ibm.couchdb.api.builders.{GetManyDocumentsQueryBuilder, GetDocumentQueryBuilder}
@@ -34,17 +35,30 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     server.mkUuid flatMap (create(obj, _))
   }
 
-  def create[D: W](obj: D, id: String): Task[Res.DocOk] = {
+  def create[D: W](obj: D, attachments: Map[String, Req.Attachment]): Task[Res.DocOk] = {
+    server.mkUuid flatMap (create(obj, _, attachments))
+  }
+
+  def create[D: W](obj: D, id: String, attachments: Map[String, Req.Attachment] = Map.empty)
+  : Task[Res.DocOk] = {
     typeMapping.forType(obj.getClass) match {
       case Some(t) =>
+        val _attachments =
+          if (attachments.nonEmpty)
+            attachments.mapValues(x =>
+              CouchAttachment(
+                data = Base64.getEncoder.encodeToString(x.data),
+                content_type = x.content_type))
+          else Map.empty[String, CouchAttachment]
         client.put[CouchDoc[D], Res.DocOk](
-                                            s"/$db/$id", Status.Created,
-                                            CouchDoc[D](obj, t))
+          s"/$db/$id",
+          Status.Created,
+          CouchDoc[D](obj, t, _attachments = _attachments))
       case None =>
         val cl = obj.getClass.getCanonicalName
         Res.Error(
-                   "cannot_create",
-                   "No type mapping for " + cl + " available: " + typeMapping).toTask[Res.DocOk]
+          "cannot_create",
+          "No type mapping for " + cl + " available: " + typeMapping).toTask[Res.DocOk]
     }
   }
 
@@ -64,12 +78,12 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
         Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
       case None =>
         postBulk(
-                  objs.map { o => CouchDoc[D](
-                                               _id = o._1,
-                                               doc = o._2,
-                                               kind = typeMapping.forType(o._2.getClass).
-                                                      getOrElse(""))
-                           })
+          objs.map { o => CouchDoc[D](
+            _id = o._1,
+            doc = o._2,
+            kind = typeMapping.forType(o._2.getClass).
+              getOrElse(""))
+          })
     }
   }
 
@@ -120,9 +134,9 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   }
 
   def attach[D](obj: CouchDoc[D],
-                name: String,
-                data: Array[Byte],
-                contentType: String = ""): Task[Res.DocOk] = {
+    name: String,
+    data: Array[Byte],
+    contentType: String = ""): Task[Res.DocOk] = {
     if (obj._id.isEmpty)
       Res.Error("cannot_attach", "Document ID must not be empty").toTask[Res.DocOk]
     else {

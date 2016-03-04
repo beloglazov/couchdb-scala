@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.ibm.couchdb
 
-import sun.misc.BASE64Decoder
+import java.util.Base64
 
 import scalaz.\/
 
@@ -65,14 +65,12 @@ case class CouchDocsIncludesMissing[K, V, D](offset: Int,
 }
 
 case class CouchAttachment(content_type: String,
-                           revpos: Int,
-                           digest: String,
+                           revpos: Int = -1,
+                           digest: String = "",
                            data: String = "",
                            length: Int = -1,
                            stub: Boolean = false) {
-  private val decoder = new BASE64Decoder()
-
-  def toBytes: Array[Byte] = decoder.decodeBuffer(data)
+  def toBytes: Array[Byte] = Base64.getDecoder.decode(data)
 }
 
 case class CouchView(map: String, reduce: String = "")
