@@ -24,13 +24,18 @@ trait Fixtures {
 
   case class FixPerson(name: String, age: Int)
 
-  val typeMapping = TypeMapping(classOf[FixPerson] -> "Person")
+  case class FixXPerson(name: String, aka: String, superPower: String)
+
+  val typeMapping = TypeMapping(classOf[FixPerson] -> "Person", classOf[FixXPerson] -> "XPerson")
 
   val lenser         = GenLens[FixPerson]
   val _personName    = lenser(_.name)
   val _personAge     = lenser(_.age)
   val _docPersonName = _couchDoc composeLens _personName
   val _docPersonAge  = _couchDoc composeLens _personAge
+
+  val fixProfessorX = FixXPerson("Charles Xavier", "Professor X", "Telepathy, Astral projection, Mind control")
+  val fixMagneto    = FixXPerson("Max Eisenhardt", "Magneto", "Magnetism manipulation")
 
   val fixAlice    = FixPerson("Alice", 25)
   val fixBob      = FixPerson("Bob", 30)
@@ -39,9 +44,10 @@ trait Fixtures {
   val fixMagritte = FixPerson("Ren\u00E9 Magritte", 68)
 
   object FixViews {
-    val names    = "names"
-    val compound = "compound"
-    val reduced  = "reduced"
+    val names      = "names"
+    val compound   = "compound"
+    val reduced    = "reduced"
+    val typeFilter = "typeFilter"
 
     val namesView = CouchView(
                                map =
@@ -73,6 +79,14 @@ trait Fixtures {
                                       | emit([d.age, d.name], d);
                                       |}
                                     """.stripMargin)
+
+    val typeFilterView = CouchView(
+                                    map =
+                                      """
+                                        |function(doc) {
+                                        | emit([doc.kind, doc._id], doc._id);
+                                        |}
+                                      """.stripMargin)
   }
 
   object FixShows {
@@ -89,7 +103,8 @@ trait Fixtures {
     views = Map(
                  FixViews.names -> FixViews.namesView,
                  FixViews.reduced -> FixViews.reducedView,
-                 FixViews.compound -> FixViews.compoundView
+                 FixViews.compound -> FixViews.compoundView,
+                 FixViews.typeFilter -> FixViews.typeFilterView
                ),
 
     shows = Map(

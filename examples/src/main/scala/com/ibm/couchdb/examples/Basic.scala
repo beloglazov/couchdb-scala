@@ -48,7 +48,7 @@ object Basic extends App {
     // Insert documents into the database
     _ <- db.docs.createMany(Seq(alice, bob, carl))
     // Retrieve all documents from the database and unserialize to Person
-    docs <- db.docs.getMany.queryIncludeDocs[Person]
+    docs <- db.docs.getMany.queryByTypeIncludeDocsWithTemporaryView[Person]
   } yield docs.getDocsData
 
   // Execute the actions and process the result

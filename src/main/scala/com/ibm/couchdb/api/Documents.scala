@@ -28,24 +28,24 @@ import scalaz.concurrent.Task
 
 class Documents(client: Client, db: String, typeMapping: TypeMapping) {
 
-  val types  = typeMapping.types
   val server = new Server(client)
-
-  private def getClassName[D](obj: D): String = obj.getClass.getCanonicalName
 
   def create[D: W](obj: D): Task[Res.DocOk] = {
     server.mkUuid flatMap (create(obj, _))
   }
 
   def create[D: W](obj: D, id: String): Task[Res.DocOk] = {
-    val cl = getClassName(obj)
-    if (!types.contains(cl))
-      Res.Error("cannot_create", "No type mapping for " + cl + " available: " + types).toTask[Res.DocOk]
-    else
-      client.put[CouchDoc[D], Res.DocOk](
-        s"/$db/$id",
-        Status.Created,
-        CouchDoc[D](obj, types(cl)))
+    typeMapping.forType(obj.getClass) match {
+      case Some(t) =>
+        client.put[CouchDoc[D], Res.DocOk](
+                                            s"/$db/$id", Status.Created,
+                                            CouchDoc[D](obj, t))
+      case None =>
+        val cl = obj.getClass.getCanonicalName
+        Res.Error(
+                   "cannot_create",
+                   "No type mapping for " + cl + " available: " + typeMapping).toTask[Res.DocOk]
+    }
   }
 
   private def postBulk[D: W](objs: Seq[CouchDoc[D]]): Task[Seq[Res.DocOk]] = {
@@ -59,11 +59,17 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   def createMany[D: W](objs: Seq[D]): Task[Seq[Res.DocOk]] = create(objs.map(("", _)))
 
   private def create[D: W, S](objs: Seq[(String, D)]): Task[Seq[Res.DocOk]] = {
-    objs.find { x => !types.contains(getClassName(x._2)) } match {
+    objs.find { x => !typeMapping.contains(x._2.getClass) } match {
       case Some(missing) =>
         Res.Error("cannot_create", "No type mapping for " + missing).toTask[Seq[Res.DocOk]]
       case None =>
-        postBulk(objs.map { o => CouchDoc[D](_id = o._1, doc = o._2, kind = types(getClassName(o._2))) })
+        postBulk(
+                  objs.map { o => CouchDoc[D](
+                                               _id = o._1,
+                                               doc = o._2,
+                                               kind = typeMapping.forType(o._2.getClass).
+                                                      getOrElse(""))
+                           })
     }
   }
 
@@ -87,7 +93,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     get.query[D](id)
   }
 
-  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db)
+  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db, typeMapping)
 
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     getMany.queryIncludeDocs[D](ids)
