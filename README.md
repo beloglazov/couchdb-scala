@@ -9,7 +9,7 @@ expressiveness, type-safety, and ease of use.
 It's based on these awesome libraries:
 [Scalaz](https://github.com/scalaz/scalaz),
 [Http4s](https://github.com/http4s/http4s),
-[uPickle](https://github.com/lihaoyi/upickle), and
+[uPickle](https://github.com/lihaoyi/upickle-pprint), and
 [Monocle](https://github.com/julien-truffaut/Monocle).
 
 
@@ -256,7 +256,7 @@ how Scala objects are represented in CouchDB and what `TypeMapping` is used for.
 One of the design goals of `CouchDB-Scala` is to make it as easy as possible to
 store and retrieve documents by automating the process of serialization and
 deserialization to and from JSON. This functionality is based on
-[uPickle](https://github.com/lihaoyi/upickle), which uses macros to
+[uPickle](https://github.com/lihaoyi/upickle-pprint), which uses macros to
 automatically generate readers and writers for case classes. However, it also
 allows implementing custom readers and writers for your domain classes if they
 are not *case classes*. For example, these can be
