@@ -182,13 +182,32 @@ Basically, we define our map function in plain JavaScript and assign it to the
 `map` field of a `CouchView` object. This function maps each document to a pair
 of the person's name as the key and age as the value. Notice, that we need to
 use `doc.doc` to get to the fields of the person object for reasons that will
-become clear later. We can now create an instance of our design document using
-the defined `ageView`:
+become clear later.
+To define a view that contains a reduce operation, specify the relevant Javascript
+function to the `reduce` attribute of the `CouchView` case class constructor like so:
+
+```Scala
+val totalAgeView = CouchView(map =
+    """
+    |function(doc) {
+    |   emit(doc._id, doc.doc.age);
+    |}
+    """.stripMargin,
+    reduce =
+    """
+    |function(key, values, rereduce) {
+    |   return sum(values);
+    |}
+    """.stripMargin)
+```
+
+We can now create an instance of our design document using
+the defined `ageView` and `totalAgeView`:
 
 ```Scala
 val designDoc = CouchDesign(
     name  = "test-design",
-    views = Map("age-view" -> ageView))
+    views = Map("age-view" -> ageView, "total-age-view" -> totalAgeView))
 ```
 
 `CouchDesign` supports other fields like `shows` and `lists`, but for this
@@ -206,7 +225,7 @@ This method call returns an object of type `Task[Res.DocOk]`. The `DocOk` case
 class represents a response from the server to a succeeded request involving
 creating, modifying, and deleting documents. Compared with `Res.Ok`, it includes
 2 extra fields: `id` (the ID of the created/updated/deleted document) and `rev`
-(the revision of the created/updated/deleted document)`. In the case of design
+(the revision of the created/updated/deleted document). In the case of design
 documents, the ID is composed of the design name prefixed with `_design/`. In
 other words, `designDoc` will get the `_design/test-design` ID. Each revision is
 a unique 32-character UUID string. We can now retrieve the design document from
@@ -397,12 +416,14 @@ obtain an instance of `ViewQueryBuilder` as follows:
 
 ```Scala
 val ageView = db.query.view[String, Int]("test-design", "age-view").get
+val totalAgeView = db.query.view[String, Int]("test-design", "total-age-view").get
 ```
 
 We need to specify 2 type parameters to the `view` method representing the types
-of the key and value emitted by the view. In the case of `age-view`, it's
-`String` for the key (person name) and `Int` for the value (person age). We can
-now use this query builder to retrieve all the documents from the view:
+of the key and value emitted by the view. In the case of `age-view` and `total-age-view`, it's
+`String` for the key (person name) and `Int` for the value (person age).
+
+We can now use the `ageView` query builder to retrieve all the documents from the view:
 
 ```Scala
 ageView.query
@@ -414,6 +435,16 @@ a sequence of document IDs, keys, and values emitted by the view's map function.
 This method makes a call to the
 [/{db}/_design/{ddoc}/_view/{view}](http://docs.couchdb.org/en/1.6.1/api/ddoc/views.html#get--db-_design-ddoc-_view-view)
 endpoint, and the builder supports all the relevant options.
+
+Similarly, to query the total age of Persons in the document using the
+`totalAgeView` builder we can do:
+
+```Scala
+totalAgeView.queryWithReduce[Int]
+```
+
+The type parameter `T` specified to `queryWithReduce[T]`, in this case `Int`,
+is the expected return type of the view's `reduce` function.
 
 We can also make more complex queries. Let's say we want to get 10 people
 starting from the name Bob and include the document content:
