@@ -361,12 +361,12 @@ do its magic, that's why we specify the type parameter to the `get` method. This
 method returns `Task[CouchDoc[Person]]`, which basically means that we are
 getting back a task that after executing successfully will give us an instance
 of `CouchDoc[Person]`. This object will contain an instance of `Person` in the
-`doc` field equivalent to the original `Person("Bob", 30)`. Another simple way
-to retrieve a set of documents (if all documents in the database are known to be
-of the same type) is the following:
+`doc` field equivalent to the original `Person("Bob", 30)`.
+
+You can also retrieve a set of documents by IDs using:
 
 ```Scala
-db.docs.getMany.queryIncludeDocs[Person]
+db.docs.getMany.queryIncludeDocs[Person](Seq("id1", "id1"))
 ```
 
 A call to `getMany` returns an instance of `GetManyDocumentsQueryBuilder`, which
@@ -380,8 +380,7 @@ limit the number of documents to the maximum of 10 and return them in the
 descending order:
 
 ```Scala
-
-db.docs.getMany.limit(10).descending.queryIncludeDocs[Person]
+db.docs.getMany.limit(10).descending.queryIncludeDocs[Person](Seq("id1", "id2"))
 ```
 
 This creates an instance of `Task[CouchDocs[String, CouchDocRev, Person]]`,
@@ -390,12 +389,23 @@ sequence of documents. The `queryIncludeDocs` method serves as a way to complete
 the query construction process, which also sets the `include_docs` option to
 include the full content of the documents mapped to `Person` objects on arrival.
 
-
 It's also possible to execute a query without including the document content
 using `db.docs.getMany.query`, which is equivalent to keeping the `include_docs`
 set to its default `false` value. This query will only return metadata on the
 matching documents. In this case, we don't need to specify the type parameter as
 no mapping is required since the document content is not retrieved.
+
+To retrieve all documents in the database of a given type without specifying ids, you could use either:
+```Scala
+val allPeople1 = db.docs.getMany.queryByTypeIncludeDocsWithTemporaryView[Person]
+val allPeople2 = db.docs.getMany.queryByTypeIncludeDocs[Person](yourOwnPermTypeFilterView)
+```
+
+The first approach, `queryByTypeIncludeDocsWithTemporaryView[T]`, uses a temporary view
+under the hood for type based filtering. While convenient for development purposes, it is inefficient
+and should be not be used in production. On the other hand, `queryByTypeIncludeDocs[T](CouchView)`,
+uses a permanent view passed as argument for type based filtering. Because it uses permanent views
+it is more efficient and is thus the recommended method for querying multiple documents by type.
 
 There is a similar query builder for retrieving single documents
 `GetDocumentQueryBuilder` that makes GET requests to the
