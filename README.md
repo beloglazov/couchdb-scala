@@ -1,6 +1,9 @@
 # CouchDB-Scala
 
 [![Build Status](https://travis-ci.org/beloglazov/couchdb-scala.svg?branch=master)](https://travis-ci.org/beloglazov/couchdb-scala)
+[![Join the chat at https://gitter.im/beloglazov/couchdb-scala](https://badges.gitter.im/beloglazov/couchdb-scala.svg)](https://gitter.im/beloglazov/couchdb-scala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm/couchdb-scala_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm/couchdb-scala_2.11)
+
 
 This is a purely functional Scala client for
 [CouchDB](http://couchdb.apache.org/). The design goals are compositionality,
