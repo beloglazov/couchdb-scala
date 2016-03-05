@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/beloglazov/couchdb-scala.svg?branch=master)](https://travis-ci.org/beloglazov/couchdb-scala)
 [![Join the chat at https://gitter.im/beloglazov/couchdb-scala](https://badges.gitter.im/beloglazov/couchdb-scala.svg)](https://gitter.im/beloglazov/couchdb-scala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm/couchdb-scala_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm/couchdb-scala_2.11)
+[![Stories in Ready](https://badge.waffle.io/beloglazov/couchdb-scala.png?label=ready&title=Ready)](https://waffle.io/beloglazov/couchdb-scala)
 
 
 This is a purely functional Scala client for
