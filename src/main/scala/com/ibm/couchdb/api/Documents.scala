@@ -17,10 +17,9 @@
 package com.ibm.couchdb.api
 
 import java.nio.file.{Files, Paths}
-import java.util.Base64
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.api.builders.{GetManyDocumentsQueryBuilder, GetDocumentQueryBuilder}
+import com.ibm.couchdb.api.builders.{GetDocumentQueryBuilder, GetManyDocumentsQueryBuilder}
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
@@ -35,25 +34,18 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     server.mkUuid flatMap (create(obj, _))
   }
 
-  def create[D: W](obj: D, attachments: Map[String, Req.Attachment]): Task[Res.DocOk] = {
+  def create[D: W](obj: D, attachments: Map[String, CouchAttachment]): Task[Res.DocOk] = {
     server.mkUuid flatMap (create(obj, _, attachments))
   }
 
-  def create[D: W](obj: D, id: String, attachments: Map[String, Req.Attachment] = Map.empty)
+  def create[D: W](obj: D, id: String, attachments: Map[String, CouchAttachment] = Map.empty)
   : Task[Res.DocOk] = {
     typeMapping.forType(obj.getClass) match {
       case Some(t) =>
-        val _attachments =
-          if (attachments.nonEmpty)
-            attachments.mapValues(x =>
-              CouchAttachment(
-                data = Base64.getEncoder.encodeToString(x.data),
-                content_type = x.content_type))
-          else Map.empty[String, CouchAttachment]
         client.put[CouchDoc[D], Res.DocOk](
           s"/$db/$id",
           Status.Created,
-          CouchDoc[D](obj, t, _attachments = _attachments))
+          CouchDoc[D](obj, t, _attachments = attachments))
       case None =>
         val cl = obj.getClass.getCanonicalName
         Res.Error(

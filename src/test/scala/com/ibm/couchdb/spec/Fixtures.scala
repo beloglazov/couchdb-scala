@@ -19,6 +19,8 @@ package com.ibm.couchdb.spec
 import com.ibm.couchdb.Lenses._
 import com.ibm.couchdb._
 import monocle.macros.GenLens
+import org.http4s.MediaType
+import org.http4s.headers.`Content-Type`
 
 trait Fixtures {
 
@@ -148,6 +150,6 @@ trait Fixtures {
   val fixAttachmentContentType   = "image/jpg"
   val fixAttachment2Name         = "attachment2"
   val fixAttachment2Data         = Array[Byte](-1, 0, 1, 2, 3, 4, 5)
-  val fixAttachment2ContentType  = "image/png"
+  val fixAttachment2ContentType  = `Content-Type`(MediaType.`image/png`)
 
 }
