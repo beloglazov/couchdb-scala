@@ -218,35 +218,6 @@ class DocumentsSpec extends CouchDbSpecification {
       aliceRes2.doc.age mustEqual fixAlice.age + 1
     }
 
-    "Update a document with attachments" >> {
-      val created = awaitRight(documents.create(fixAlice))
-      val aliceRes = awaitRight(documents.get[FixPerson](created.id))
-      val aliceWithAttachments = aliceRes.copy(
-        _attachments = Map(
-          fixAttachmentName -> CouchAttachment.fromBytes(
-            fixAttachmentData, fixAttachmentContentType),
-          fixAttachment2Name -> CouchAttachment.fromBytes(
-            fixAttachment2Data, fixAttachment2ContentType)))
-      val docOk = awaitRight(documents.update(aliceWithAttachments))
-      checkDocOk(docOk, aliceRes._id)
-      val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
-      doc._id mustEqual created.id
-      doc._attachments must haveLength(2)
-      doc._attachments must haveKeys(fixAttachmentName, fixAttachment2Name)
-      val attachment = doc._attachments(fixAttachmentName)
-      attachment.content_type mustEqual fixAttachmentContentType
-      attachment.length mustEqual -1
-      attachment.stub mustEqual false
-      attachment.digest must not be empty
-      attachment.toBytes mustEqual fixAttachmentData
-      val attachment2 = doc._attachments(fixAttachment2Name)
-      attachment2.content_type mustEqual fixAttachment2ContentType.toString
-      attachment2.length mustEqual -1
-      attachment2.stub mustEqual false
-      attachment2.digest must not be empty
-      attachment2.toBytes mustEqual fixAttachment2Data
-    }
-
     "Fail to update a document without ID" >> {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
@@ -331,6 +302,35 @@ class DocumentsSpec extends CouchDbSpecification {
         fixAttachment2Name -> CouchAttachment.fromBytes(
           fixAttachment2Data, fixAttachment2ContentType))
       val created = awaitRight(documents.create(fixAlice, attachments))
+      val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
+      doc._id mustEqual created.id
+      doc._attachments must haveLength(2)
+      doc._attachments must haveKeys(fixAttachmentName, fixAttachment2Name)
+      val attachment = doc._attachments(fixAttachmentName)
+      attachment.content_type mustEqual fixAttachmentContentType
+      attachment.length mustEqual -1
+      attachment.stub mustEqual false
+      attachment.digest must not be empty
+      attachment.toBytes mustEqual fixAttachmentData
+      val attachment2 = doc._attachments(fixAttachment2Name)
+      attachment2.content_type mustEqual fixAttachment2ContentType.toString
+      attachment2.length mustEqual -1
+      attachment2.stub mustEqual false
+      attachment2.digest must not be empty
+      attachment2.toBytes mustEqual fixAttachment2Data
+    }
+
+    "Update a document with attachments" >> {
+      val created = awaitRight(documents.create(fixAlice))
+      val aliceRes = awaitRight(documents.get[FixPerson](created.id))
+      val aliceWithAttachments = aliceRes.copy(
+        _attachments = Map(
+          fixAttachmentName -> CouchAttachment.fromBytes(
+            fixAttachmentData, fixAttachmentContentType),
+          fixAttachment2Name -> CouchAttachment.fromBytes(
+            fixAttachment2Data, fixAttachment2ContentType)))
+      val docOk = awaitRight(documents.update(aliceWithAttachments))
+      checkDocOk(docOk, aliceRes._id)
       val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
       doc._id mustEqual created.id
       doc._attachments must haveLength(2)
