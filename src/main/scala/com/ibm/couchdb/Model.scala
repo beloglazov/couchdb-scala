@@ -18,6 +18,8 @@ package com.ibm.couchdb
 
 import java.util.Base64
 
+import org.http4s.headers.`Content-Type`
+
 import scalaz.\/
 
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
@@ -78,6 +80,12 @@ case object CouchAttachment {
     CouchAttachment(
       content_type = content_type,
       data = Base64.getEncoder.encodeToString(data))
+  }
+
+  def fromBytes(data: Array[Byte], content_type: `Content-Type`): CouchAttachment = {
+    CouchAttachment(
+                     content_type = content_type.toString,
+                     data = Base64.getEncoder.encodeToString(data))
   }
 }
 

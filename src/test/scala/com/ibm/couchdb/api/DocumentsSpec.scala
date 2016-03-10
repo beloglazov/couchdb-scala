@@ -240,7 +240,7 @@ class DocumentsSpec extends CouchDbSpecification {
       attachment.digest must not be empty
       attachment.toBytes mustEqual fixAttachmentData
       val attachment2 = doc._attachments(fixAttachment2Name)
-      attachment2.content_type mustEqual fixAttachment2ContentType
+      attachment2.content_type mustEqual fixAttachment2ContentType.toString
       attachment2.length mustEqual -1
       attachment2.stub mustEqual false
       attachment2.digest must not be empty
@@ -342,7 +342,7 @@ class DocumentsSpec extends CouchDbSpecification {
       attachment.digest must not be empty
       attachment.toBytes mustEqual fixAttachmentData
       val attachment2 = doc._attachments(fixAttachment2Name)
-      attachment2.content_type mustEqual fixAttachment2ContentType
+      attachment2.content_type mustEqual fixAttachment2ContentType.toString
       attachment2.length mustEqual -1
       attachment2.stub mustEqual false
       attachment2.digest must not be empty
