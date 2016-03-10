@@ -16,8 +16,8 @@
 
 package com.ibm.couchdb.api
 
-import com.ibm.couchdb.{CouchAttachment, CouchDoc, Req}
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
+import com.ibm.couchdb.{CouchAttachment, CouchDoc}
 import monocle.syntax._
 import org.http4s.Status
 
@@ -333,8 +333,8 @@ class DocumentsSpec extends CouchDbSpecification {
       checkDocOk(docOk, aliceRes._id)
       val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
       doc._id mustEqual created.id
-      doc._attachments must haveLength(2)
-      doc._attachments must haveKeys(fixAttachmentName, fixAttachment2Name)
+      doc._attachments.keys must containTheSameElementsAs(Seq(fixAttachmentName,
+                                                              fixAttachment2Name))
       val attachment = doc._attachments(fixAttachmentName)
       attachment.content_type mustEqual fixAttachmentContentType
       attachment.length mustEqual -1
