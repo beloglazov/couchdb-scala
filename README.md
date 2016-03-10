@@ -13,7 +13,7 @@ expressiveness, type-safety, and ease of use.
 It's based on these awesome libraries:
 [Scalaz](https://github.com/scalaz/scalaz),
 [Http4s](https://github.com/http4s/http4s),
-[uPickle](https://github.com/lihaoyi/upickle), and
+[uPickle](https://github.com/lihaoyi/upickle-pprint), and
 [Monocle](https://github.com/julien-truffaut/Monocle).
 
 
@@ -22,7 +22,7 @@ It's based on these awesome libraries:
 Add the following dependency to your SBT config:
 
 ```Scala
-libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.6.0"
+libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.7.0"
 ```
 
 
@@ -186,13 +186,32 @@ Basically, we define our map function in plain JavaScript and assign it to the
 `map` field of a `CouchView` object. This function maps each document to a pair
 of the person's name as the key and age as the value. Notice, that we need to
 use `doc.doc` to get to the fields of the person object for reasons that will
-become clear later. We can now create an instance of our design document using
-the defined `ageView`:
+become clear later.
+To define a view that contains a reduce operation, specify the relevant Javascript
+function to the `reduce` attribute of the `CouchView` case class constructor like so:
+
+```Scala
+val totalAgeView = CouchView(map =
+    """
+    |function(doc) {
+    |   emit(doc._id, doc.doc.age);
+    |}
+    """.stripMargin,
+    reduce =
+    """
+    |function(key, values, rereduce) {
+    |   return sum(values);
+    |}
+    """.stripMargin)
+```
+
+We can now create an instance of our design document using
+the defined `ageView` and `totalAgeView`:
 
 ```Scala
 val designDoc = CouchDesign(
     name  = "test-design",
-    views = Map("age-view" -> ageView))
+    views = Map("age-view" -> ageView, "total-age-view" -> totalAgeView))
 ```
 
 `CouchDesign` supports other fields like `shows` and `lists`, but for this
@@ -210,7 +229,7 @@ This method call returns an object of type `Task[Res.DocOk]`. The `DocOk` case
 class represents a response from the server to a succeeded request involving
 creating, modifying, and deleting documents. Compared with `Res.Ok`, it includes
 2 extra fields: `id` (the ID of the created/updated/deleted document) and `rev`
-(the revision of the created/updated/deleted document)`. In the case of design
+(the revision of the created/updated/deleted document). In the case of design
 documents, the ID is composed of the design name prefixed with `_design/`. In
 other words, `designDoc` will get the `_design/test-design` ID. Each revision is
 a unique 32-character UUID string. We can now retrieve the design document from
@@ -260,7 +279,7 @@ how Scala objects are represented in CouchDB and what `TypeMapping` is used for.
 One of the design goals of `CouchDB-Scala` is to make it as easy as possible to
 store and retrieve documents by automating the process of serialization and
 deserialization to and from JSON. This functionality is based on
-[uPickle](https://github.com/lihaoyi/upickle), which uses macros to
+[uPickle](https://github.com/lihaoyi/upickle-pprint), which uses macros to
 automatically generate readers and writers for case classes. However, it also
 allows implementing custom readers and writers for your domain classes if they
 are not *case classes*. For example, these can be
@@ -346,12 +365,12 @@ do its magic, that's why we specify the type parameter to the `get` method. This
 method returns `Task[CouchDoc[Person]]`, which basically means that we are
 getting back a task that after executing successfully will give us an instance
 of `CouchDoc[Person]`. This object will contain an instance of `Person` in the
-`doc` field equivalent to the original `Person("Bob", 30)`. Another simple way
-to retrieve a set of documents (if all documents in the database are known to be
-of the same type) is the following:
+`doc` field equivalent to the original `Person("Bob", 30)`.
+
+You can also retrieve a set of documents by IDs using:
 
 ```Scala
-db.docs.getMany.queryIncludeDocs[Person]
+db.docs.getMany.queryIncludeDocs[Person](Seq("id1", "id1"))
 ```
 
 A call to `getMany` returns an instance of `GetManyDocumentsQueryBuilder`, which
@@ -365,8 +384,7 @@ limit the number of documents to the maximum of 10 and return them in the
 descending order:
 
 ```Scala
-
-db.docs.getMany.limit(10).descending.queryIncludeDocs[Person]
+db.docs.getMany.limit(10).descending.queryIncludeDocs[Person](Seq("id1", "id2"))
 ```
 
 This creates an instance of `Task[CouchDocs[String, CouchDocRev, Person]]`,
@@ -375,12 +393,23 @@ sequence of documents. The `queryIncludeDocs` method serves as a way to complete
 the query construction process, which also sets the `include_docs` option to
 include the full content of the documents mapped to `Person` objects on arrival.
 
-
 It's also possible to execute a query without including the document content
 using `db.docs.getMany.query`, which is equivalent to keeping the `include_docs`
 set to its default `false` value. This query will only return metadata on the
 matching documents. In this case, we don't need to specify the type parameter as
 no mapping is required since the document content is not retrieved.
+
+To retrieve all documents in the database of a given type without specifying ids, you could use either:
+```Scala
+val allPeople1 = db.docs.getMany.queryByTypeIncludeDocsWithTemporaryView[Person]
+val allPeople2 = db.docs.getMany.queryByTypeIncludeDocs[Person](yourOwnPermTypeFilterView)
+```
+
+The first approach, `queryByTypeIncludeDocsWithTemporaryView[T]`, uses a temporary view
+under the hood for type based filtering. While convenient for development purposes, it is inefficient
+and should be not be used in production. On the other hand, `queryByTypeIncludeDocs[T](CouchView)`,
+uses a permanent view passed as argument for type based filtering. Because it uses permanent views
+it is more efficient and is thus the recommended method for querying multiple documents by type.
 
 There is a similar query builder for retrieving single documents
 `GetDocumentQueryBuilder` that makes GET requests to the
@@ -401,12 +430,14 @@ obtain an instance of `ViewQueryBuilder` as follows:
 
 ```Scala
 val ageView = db.query.view[String, Int]("test-design", "age-view").get
+val totalAgeView = db.query.view[String, Int]("test-design", "total-age-view").get
 ```
 
 We need to specify 2 type parameters to the `view` method representing the types
-of the key and value emitted by the view. In the case of `age-view`, it's
-`String` for the key (person name) and `Int` for the value (person age). We can
-now use this query builder to retrieve all the documents from the view:
+of the key and value emitted by the view. In the case of `age-view` and `total-age-view`, it's
+`String` for the key (person name) and `Int` for the value (person age).
+
+We can now use the `ageView` query builder to retrieve all the documents from the view:
 
 ```Scala
 ageView.query
@@ -418,6 +449,16 @@ a sequence of document IDs, keys, and values emitted by the view's map function.
 This method makes a call to the
 [/{db}/_design/{ddoc}/_view/{view}](http://docs.couchdb.org/en/1.6.1/api/ddoc/views.html#get--db-_design-ddoc-_view-view)
 endpoint, and the builder supports all the relevant options.
+
+Similarly, to query the total age of Persons in the document using the
+`totalAgeView` builder we can do:
+
+```Scala
+totalAgeView.queryWithReduce[Int]
+```
+
+The type parameter `T` specified to `queryWithReduce[T]`, in this case `Int`,
+is the expected return type of the view's `reduce` function.
 
 We can also make more complex queries. Let's say we want to get 10 people
 starting from the name Bob and include the document content:
