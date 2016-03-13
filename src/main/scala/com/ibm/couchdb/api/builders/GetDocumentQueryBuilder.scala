@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 IBM Corporation
+ * Copyright 2015 IBM Corporation, Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ case class GetDocumentQueryBuilder(client: Client,
   }
 
   def attsSince(attsSince: Seq[String]): GetDocumentQueryBuilder = {
-    set("att_encoding_info", write(attsSince))
+    set("atts_since", write(attsSince))
   }
 
   def conflicts(conflicts: Boolean = true): GetDocumentQueryBuilder = {
