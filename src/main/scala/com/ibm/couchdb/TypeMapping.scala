@@ -26,17 +26,13 @@ final class TypeMapping private(private val types: Map[String, String]) {
   }
 
   override def toString: String = types.toString
-
 }
 
 object TypeMapping {
-
   val empty = new TypeMapping(Map.empty[String, String])
 
   def apply(mapping: (Class[_], String)*): TypeMapping = {
-    new TypeMapping(
-      mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
+    new TypeMapping(mapping.map((x: (Class[_], String)) => (x._1.getCanonicalName, x._2)).toMap)
   }
-
 }
 

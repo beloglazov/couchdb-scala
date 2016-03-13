@@ -41,15 +41,13 @@ class QueryShowSpec extends CouchDbSpecification {
     }
 
     "Query a show by ID" >> {
-      awaitRight(show.query(createdAlice.id)) mustEqual s"${ fixAlice.name },${ fixAlice.age }"
-      awaitRight(show.query(createdBob.id)) mustEqual s"${ fixBob.name },${ fixBob.age }"
+      awaitRight(show.query(createdAlice.id)) mustEqual s"${fixAlice.name},${fixAlice.age}"
+      awaitRight(show.query(createdBob.id)) mustEqual s"${fixBob.name},${fixBob.age}"
     }
 
     "Query a show by ID with params" >> {
       val res = awaitRight(show.addParam("extra", "test").query(createdAlice.id))
-      res mustEqual s"${ fixAlice.name },${ fixAlice.age },test"
+      res mustEqual s"${fixAlice.name},${fixAlice.age},test"
     }
-
   }
-
 }

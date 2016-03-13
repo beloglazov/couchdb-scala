@@ -24,10 +24,11 @@ import scalaz._
 
 case class CouchDbApi(name: String, docs: Documents, design: Design, query: Query)
 
-class CouchDb private(host: String,
-                      port: Int,
-                      https: Boolean,
-                      credentials: Option[(String, String)]) {
+class CouchDb private(
+    host: String,
+    port: Int,
+    https: Boolean,
+    credentials: Option[(String, String)]) {
 
   val client = new Client(Config(host, port, https, credentials))
   val server = new Server(client)
@@ -52,7 +53,8 @@ object CouchDb {
     new CouchDb(host, port, https, none)
   }
 
-  def apply(host: String, port: Int, https: Boolean, username: String, password: String): CouchDb = {
+  def apply(
+      host: String, port: Int, https: Boolean, username: String, password: String): CouchDb = {
     new CouchDb(host, port, https, (username, password).some)
   }
 }

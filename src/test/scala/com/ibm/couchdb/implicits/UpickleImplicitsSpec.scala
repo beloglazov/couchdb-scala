@@ -24,9 +24,9 @@ import upickle.default.Aliases.{R, W}
 import upickle.default.{read => pickleR, write => pickleW}
 
 class UpickleImplicitsSpec extends Specification
-                                   with AllExpectations
-                                   with Fixtures
-                                   with UpickleImplicits {
+    with AllExpectations
+    with Fixtures
+    with UpickleImplicits {
 
   val map0  = Map[String, String]()
   val json0 = "{}"
@@ -40,7 +40,8 @@ class UpickleImplicitsSpec extends Specification
   val map3  = Map[String, (String, Int)]("key1" -> (("key1", 1)), "key2" -> (("key2", 2)))
   val json3 = "{\"key1\":[\"key1\",1],\"key2\":[\"key2\",2]}"
 
-  val map4  = Map[String, FixPerson]("key1" -> FixPerson("Alice", 25), "key2" -> FixPerson("Bob", 30))
+  val map4  = Map[String, FixPerson](
+    "key1" -> FixPerson("Alice", 25), "key2" -> FixPerson("Bob", 30))
   val json4 = "{\"key1\":{\"name\":\"Alice\",\"age\":25},\"key2\":{\"name\":\"Bob\",\"age\":30}}"
 
   private def testRoundtrip[D](obj: D)(implicit r: R[D], w: W[D]) = {

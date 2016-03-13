@@ -40,6 +40,7 @@ class Client(config: Config) {
     case Some(x) => Headers(Authorization(BasicCredentials(x._1, x._2)))
     case None => Headers()
   }
+
   val baseHeadersWithAccept = baseHeaders.put(Header("Accept", "application/json; charset=utf-8"))
 
   val baseUri = Uri(
@@ -85,9 +86,10 @@ class Client(config: Config) {
     } yield read[T](asString)
   }
 
-  def getRaw(resource: String,
-             expectedStatus: Status,
-             params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[String] = {
+  def getRaw(
+      resource: String,
+      expectedStatus: Status,
+      params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[String] = {
     val request = Request(
       method = GET,
       uri = url(resource, params),
@@ -95,9 +97,10 @@ class Client(config: Config) {
     req(request, expectedStatus).as[String]
   }
 
-  def get[T: R](resource: String,
-                expectedStatus: Status,
-                params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
+  def get[T: R](
+      resource: String,
+      expectedStatus: Status,
+      params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
     val request = Request(
       method = GET,
       uri = url(resource, params),
@@ -112,10 +115,11 @@ class Client(config: Config) {
     req(request, expectedStatus).as[ByteVector].map(_.toArray)
   }
 
-  private def put[T: R](resource: String,
-                        expectedStatus: Status,
-                        entity: EntityEncoder.Entity,
-                        contentType: String): Task[T] = {
+  private def put[T: R](
+      resource: String,
+      expectedStatus: Status,
+      entity: EntityEncoder.Entity,
+      contentType: String): Task[T] = {
     val headers =
       if (!contentType.isEmpty) baseHeadersWithAccept.put(Header("Content-Type", contentType))
       else baseHeadersWithAccept
@@ -127,27 +131,30 @@ class Client(config: Config) {
     reqAndRead[T](request, expectedStatus)
   }
 
-  def put[B: W, T: R](resource: String,
-                      expectedStatus: Status,
-                      body: B): Task[T] = {
+  def put[B: W, T: R](
+      resource: String,
+      expectedStatus: Status,
+      body: B): Task[T] = {
     EntityEncoder[String].toEntity(write(body)) flatMap { entity =>
       put[T](resource, expectedStatus, entity, "")
     }
   }
 
-  def put[T: R](resource: String,
-                expectedStatus: Status,
-                body: Array[Byte] = Array(),
-                contentType: String = ""): Task[T] = {
+  def put[T: R](
+      resource: String,
+      expectedStatus: Status,
+      body: Array[Byte] = Array(),
+      contentType: String = ""): Task[T] = {
     EntityEncoder[Array[Byte]].toEntity(body) flatMap { entity =>
       put[T](resource, expectedStatus, entity, contentType)
     }
   }
 
-  def post[B: W, T: R](resource: String,
-                       expectedStatus: Status,
-                       body: B,
-                       params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
+  def post[B: W, T: R](
+      resource: String,
+      expectedStatus: Status,
+      body: B,
+      params: Seq[(String, String)] = Seq.empty[(String, String)]): Task[T] = {
     EntityEncoder[String].toEntity(write(body)) flatMap { entity =>
       val request = Request(
         method = POST,

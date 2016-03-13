@@ -20,13 +20,13 @@ import com.ibm.couchdb.spec.CouchDbSpecification
 
 class QueryViewSpec extends CouchDbSpecification {
 
-  val db           = "couchdb-scala-query-view-spec"
-  val databases    = new Databases(client)
-  val design       = new Design(client, db)
-  val documents    = new Documents(client, db, typeMapping)
-  val query        = new Query(client, db)
-  val namesView    = query.view[String, String](fixDesign.name, FixViews.names).get
-  val compoundView = query.view[(Int, String), FixPerson](fixDesign.name, FixViews.compound).get
+  val db            = "couchdb-scala-query-view-spec"
+  val databases     = new Databases(client)
+  val design        = new Design(client, db)
+  val documents     = new Documents(client, db, typeMapping)
+  val query         = new Query(client, db)
+  val namesView     = query.view[String, String](fixDesign.name, FixViews.names).get
+  val compoundView  = query.view[(Int, String), FixPerson](fixDesign.name, FixViews.compound).get
   val aggregateView = query.view[String, String](fixDesign.name, FixViews.reduced).get
 
   recreateDb(databases, db)
@@ -55,7 +55,8 @@ class QueryViewSpec extends CouchDbSpecification {
     }
 
     "Query a view with reducer given keys" >> {
-      val docs = awaitRight(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
+      val docs = awaitRight(
+        aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
       docs.rows must haveLength(2)
       docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
       docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
@@ -122,7 +123,5 @@ class QueryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
       docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob)
     }
-
   }
-
 }

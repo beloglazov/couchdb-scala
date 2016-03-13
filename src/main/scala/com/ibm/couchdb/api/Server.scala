@@ -35,5 +35,4 @@ class Server(client: Client) {
   def mkUuids(count: Int): Task[Seq[String]] = {
     client.get[Res.Uuids](s"/_uuids?count=$count", Status.Ok).map(_.uuids)
   }
-
 }

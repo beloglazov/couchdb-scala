@@ -41,7 +41,5 @@ class ServerSpec extends CouchDbSpecification {
       uuids must have size 3
       uuids must contain(beUuid).forall
     }
-
   }
-
 }

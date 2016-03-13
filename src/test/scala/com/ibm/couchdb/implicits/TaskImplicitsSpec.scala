@@ -34,7 +34,5 @@ class TaskImplicitsSpec extends CouchDbSpecification {
       awaitError(databases.create(db), "file_exists")
       awaitOk(databases.create(db).ignoreError)
     }
-
   }
-
 }

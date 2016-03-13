@@ -39,5 +39,4 @@ class Databases(client: Client) {
   def delete(name: String): Task[Res.Ok] = {
     client.delete[Res.Ok](s"/$name", Status.Ok)
   }
-
 }

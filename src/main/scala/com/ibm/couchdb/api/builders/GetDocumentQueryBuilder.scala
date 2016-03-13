@@ -24,9 +24,8 @@ import upickle.default.write
 
 import scalaz.concurrent.Task
 
-case class GetDocumentQueryBuilder(client: Client,
-                                   db: String,
-                                   params: Map[String, String] = Map.empty[String, String]) {
+case class GetDocumentQueryBuilder(
+    client: Client, db: String, params: Map[String, String] = Map.empty[String, String]) {
 
   def attachments(attachments: Boolean = true): GetDocumentQueryBuilder = {
     set("attachments", attachments)
@@ -90,12 +89,11 @@ case class GetDocumentQueryBuilder(client: Client,
 
   def query[D: R](id: String): Task[CouchDoc[D]] = {
     if (id.isEmpty)
-      Res.Error("not_found", "No ID specified").toTask[CouchDoc[D]]
+      Res.Error("not_found", "No ID specified").toTask
     else
       client.get[CouchDoc[D]](
         s"/$db/$id",
         Status.Ok,
         params.toSeq)
   }
-
 }

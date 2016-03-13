@@ -30,12 +30,14 @@ class BasicAuthSpec extends CouchDbSpecification {
     SpecConfig.couchDbPassword)
 
   val db       = "couchdb-scala-basic-auth-spec"
-  val adminUrl = s"/_config/admins/${ SpecConfig.couchDbUsername }"
+  val adminUrl = s"/_config/admins/${SpecConfig.couchDbUsername}"
 
   "Basic authentication" >> {
 
     "Only admin can create and delete databases" >> {
-      awaitRight(couch.client.put[String, String](adminUrl, Status.Ok, SpecConfig.couchDbPassword)) mustEqual ""
+      awaitRight(
+        couch.client.put[String, String](
+          adminUrl, Status.Ok, SpecConfig.couchDbPassword)) mustEqual ""
       awaitError(couch.dbs.create(db), "unauthorized")
       await(couchAdmin.dbs.delete(db))
       awaitOk(couchAdmin.dbs.create(db))
@@ -43,7 +45,5 @@ class BasicAuthSpec extends CouchDbSpecification {
       awaitDocOk(couchAdmin.db(db, typeMapping).docs.create(fixAlice))
       awaitRight(couchAdmin.client.delete[String](adminUrl, Status.Ok)) must not be empty
     }
-
   }
-
 }

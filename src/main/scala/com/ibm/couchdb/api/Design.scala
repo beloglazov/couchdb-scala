@@ -26,17 +26,17 @@ class Design(client: Client, db: String) {
 
   def create(design: CouchDesign): Task[Res.DocOk] = {
     if (design.name.isEmpty)
-      Res.Error("cannot_create", "Design name must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_create", "Design name must not be empty").toTask
     else
       client.put[CouchDesign, Res.DocOk](
-        s"/$db/_design/${ design.name }",
+        s"/$db/_design/${design.name}",
         Status.Created,
         design)
   }
 
   def info(name: String): Task[Res.DesignInfo] = {
     if (name.isEmpty)
-      Res.Error("not_found", "Design name must not be empty").toTask[Res.DesignInfo]
+      Res.Error("not_found", "Design name must not be empty").toTask
     else
       client.get[Res.DesignInfo](
         s"/$db/_design/$name/_info",
@@ -45,7 +45,7 @@ class Design(client: Client, db: String) {
 
   def get(name: String): Task[CouchDesign] = {
     if (name.isEmpty)
-      Res.Error("not_found", "Design name must not be empty").toTask[CouchDesign]
+      Res.Error("not_found", "Design name must not be empty").toTask
     else
       client.get[CouchDesign](
         s"/$db/_design/$name",
@@ -55,7 +55,7 @@ class Design(client: Client, db: String) {
 
   def getWithAttachments(name: String): Task[CouchDesign] = {
     if (name.isEmpty)
-      Res.Error("not_found", "Design name must not be empty").toTask[CouchDesign]
+      Res.Error("not_found", "Design name must not be empty").toTask
     else
       client.get[CouchDesign](
         s"/$db/_design/$name?attachments=true",
@@ -65,7 +65,7 @@ class Design(client: Client, db: String) {
 
   def getById(id: String): Task[CouchDesign] = {
     if (id.isEmpty)
-      Res.Error("not_found", "Design ID must not be empty").toTask[CouchDesign]
+      Res.Error("not_found", "Design ID must not be empty").toTask
     else
       client.get[CouchDesign](
         s"/$db/$id",
@@ -75,39 +75,40 @@ class Design(client: Client, db: String) {
 
   def update(design: CouchDesign): Task[Res.DocOk] = {
     if (design._id.isEmpty)
-      Res.Error("cannot_update", "Design ID must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_update", "Design ID must not be empty").toTask
     else
       client.put[CouchDesign, Res.DocOk](
-        s"/$db/${ design._id }",
+        s"/$db/${design._id}",
         Status.Created,
         design)
   }
 
   def delete(design: CouchDesign): Task[Res.DocOk] = {
     if (design._id.isEmpty)
-      Res.Error("cannot_delete", "Design ID must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_delete", "Design ID must not be empty").toTask
     else
       client.delete[Res.DocOk](
-        s"/$db/${ design._id }?rev=${ design._rev }",
+        s"/$db/${design._id}?rev=${design._rev}",
         Status.Ok)
   }
 
   def deleteByName(name: String): Task[Res.DocOk] = {
     if (name.isEmpty)
-      Res.Error("cannot_delete", "Design name must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_delete", "Design name must not be empty").toTask
     else
       get(name) flatMap delete
   }
 
-  def attach(design: CouchDesign,
-             name: String,
-             data: Array[Byte],
-             contentType: String = ""): Task[Res.DocOk] = {
+  def attach(
+      design: CouchDesign,
+      name: String,
+      data: Array[Byte],
+      contentType: String = ""): Task[Res.DocOk] = {
     if (design._id.isEmpty)
-      Res.Error("cannot_attach", "Design ID must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_attach", "Design ID must not be empty").toTask
     else
       client.put[Res.DocOk](
-        s"/$db/${ design._id }/$name?rev=${ design._rev }",
+        s"/$db/${design._id}/$name?rev=${design._rev}",
         Status.Created,
         data,
         contentType)
@@ -115,22 +116,21 @@ class Design(client: Client, db: String) {
 
   def getAttachment(design: CouchDesign, name: String): Task[Array[Byte]] = {
     if (design._id.isEmpty)
-      Res.Error("not_found", "Design ID must not be empty").toTask[Array[Byte]]
+      Res.Error("not_found", "Design ID must not be empty").toTask
     else
       client.getBinary(
-        s"/$db/${ design._id }/$name",
+        s"/$db/${design._id}/$name",
         Status.Ok)
   }
 
   def deleteAttachment(design: CouchDesign, name: String): Task[Res.DocOk] = {
     if (design._id.isEmpty)
-      Res.Error("cannot_delete", "Design ID must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_delete", "Design ID must not be empty").toTask
     else if (name.isEmpty)
-      Res.Error("cannot_delete", "Attachment name must not be empty").toTask[Res.DocOk]
+      Res.Error("cannot_delete", "Attachment name must not be empty").toTask
     else
       client.delete[Res.DocOk](
-        s"/$db/${ design._id }/$name?rev=${ design._rev }",
+        s"/$db/${design._id}/$name?rev=${design._rev}",
         Status.Ok)
   }
-
 }

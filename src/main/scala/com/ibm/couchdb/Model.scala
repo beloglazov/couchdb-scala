@@ -24,15 +24,16 @@ import scalaz.\/
 
 case class Config(host: String, port: Int, https: Boolean, credentials: Option[(String, String)])
 
-case class CouchDoc[D](doc: D,
-                       kind: String,
-                       _id: String = "",
-                       _rev: String = "",
-                       _deleted: Boolean = false,
-                       _attachments: Map[String, CouchAttachment] = Map.empty[String, CouchAttachment],
-                       _conflicts: Seq[String] = Seq.empty[String],
-                       _deleted_conflicts: Seq[String] = Seq.empty[String],
-                       _local_seq: Int = 0)
+case class CouchDoc[D](
+    doc: D,
+    kind: String,
+    _id: String = "",
+    _rev: String = "",
+    _deleted: Boolean = false,
+    _attachments: Map[String, CouchAttachment] = Map.empty[String, CouchAttachment],
+    _conflicts: Seq[String] = Seq.empty[String],
+    _deleted_conflicts: Seq[String] = Seq.empty[String],
+    _local_seq: Int = 0)
 
 case class CouchDocRev(rev: String)
 
@@ -48,30 +49,36 @@ case class CouchKeyVals[K, V](offset: Int, total_rows: Int, rows: Seq[CouchKeyVa
 
 case class CouchReducedKeyVals[K, V](rows: Seq[CouchReducedKeyVal[K, V]])
 
-case class CouchKeyValsIncludesMissing[K, V](offset: Int,
-                                             total_rows: Int,
-                                             rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
+case class CouchKeyValsIncludesMissing[K, V](
+    offset: Int,
+    total_rows: Int,
+    rows: Seq[\/[CouchKeyError[K], CouchKeyVal[K, V]]])
 
-case class CouchDocs[K, V, D](offset: Int, total_rows: Int, rows: Seq[CouchKeyValWithDoc[K, V, D]]) {
+case class CouchDocs[K, V, D](
+    offset: Int, total_rows: Int, rows: Seq[CouchKeyValWithDoc[K, V, D]]) {
+
   def getDocs: Seq[CouchDoc[D]] = rows.map(_.doc)
 
   def getDocsData: Seq[D] = rows.map(_.doc.doc)
 }
 
-case class CouchDocsIncludesMissing[K, V, D](offset: Int,
-                                             total_rows: Int,
-                                             rows: Seq[\/[CouchKeyError[K], CouchKeyValWithDoc[K, V, D]]]) {
+case class CouchDocsIncludesMissing[K, V, D](
+    offset: Int,
+    total_rows: Int,
+    rows: Seq[\/[CouchKeyError[K], CouchKeyValWithDoc[K, V, D]]]) {
+
   def getDocs: Seq[CouchDoc[D]] = rows.flatMap(_.toOption).map(_.doc)
 
   def getDocsData: Seq[D] = rows.flatMap(_.toOption).map(_.doc.doc)
 }
 
-case class CouchAttachment(content_type: String,
-                           revpos: Int = -1,
-                           digest: String = "",
-                           data: String = "",
-                           length: Int = -1,
-                           stub: Boolean = false) {
+case class CouchAttachment(
+    content_type: String,
+    revpos: Int = -1,
+    digest: String = "",
+    data: String = "",
+    length: Int = -1,
+    stub: Boolean = false) {
   def toBytes: Array[Byte] = Base64.getDecoder.decode(data)
 }
 
@@ -84,23 +91,24 @@ case object CouchAttachment {
 
   def fromBytes(data: Array[Byte], content_type: `Content-Type`): CouchAttachment = {
     CouchAttachment(
-                     content_type = content_type.toString,
-                     data = Base64.getEncoder.encodeToString(data))
+      content_type = content_type.toString,
+      data = Base64.getEncoder.encodeToString(data))
   }
 }
 
 case class CouchView(map: String, reduce: String = "")
 
-case class CouchDesign(name: String,
-                       _id: String = "",
-                       _rev: String = "",
-                       language: String = "javascript",
-                       validate_doc_update: String = "",
-                       views: Map[String, CouchView] = Map.empty[String, CouchView],
-                       shows: Map[String, String] = Map.empty[String, String],
-                       lists: Map[String, String] = Map.empty[String, String],
-                       _attachments: Map[String, CouchAttachment] = Map.empty[String, CouchAttachment],
-                       signatures: Map[String, String] = Map.empty[String, String])
+case class CouchDesign(
+    name: String,
+    _id: String = "",
+    _rev: String = "",
+    language: String = "javascript",
+    validate_doc_update: String = "",
+    views: Map[String, CouchView] = Map.empty[String, CouchView],
+    shows: Map[String, String] = Map.empty[String, String],
+    lists: Map[String, String] = Map.empty[String, String],
+    _attachments: Map[String, CouchAttachment] = Map.empty[String, CouchAttachment],
+    signatures: Map[String, String] = Map.empty[String, String])
 
 case class CouchException[D](content: D) extends Throwable {
   override def toString: String = "CouchException: " + content

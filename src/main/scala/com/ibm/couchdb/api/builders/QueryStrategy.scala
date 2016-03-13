@@ -26,18 +26,29 @@ import scalaz.concurrent.Task
 
 trait QueryStrategy {
 
-  def postQuery[Q: R](client: Client, db: String, url: String,
-                      ps: Map[String, String]): Task[Q] = {
-    client.get[Q](url, Status.Ok, ps.toSeq)
+  def postQuery[Q: R](
+      client: Client,
+      db: String,
+      url: String,
+      params: Map[String, String]): Task[Q] = {
+    client.get[Q](url, Status.Ok, params.toSeq)
   }
 
-  def queryByIds[K: W, Q: R](client: Client, db: String, url: String, ids: Seq[K],
-                             ps: Map[String, String]): Task[Q] = {
-    postQuery[Req.DocKeys[K], Q](client, db, url, Req.DocKeys(ids), ps)
+  def queryByIds[K: W, Q: R](
+      client: Client,
+      db: String,
+      url: String,
+      ids: Seq[K],
+      params: Map[String, String]): Task[Q] = {
+    postQuery[Req.DocKeys[K], Q](client, db, url, Req.DocKeys(ids), params)
   }
 
-  def postQuery[B: W, Q: R](client: Client, db: String, url: String, body: B,
-                            ps: Map[String, String]): Task[Q] = {
-    client.post[B, Q](url, Status.Ok, body, ps.toSeq)
+  def postQuery[B: W, Q: R](
+      client: Client,
+      db: String,
+      url: String,
+      body: B,
+      params: Map[String, String]): Task[Q] = {
+    client.post[B, Q](url, Status.Ok, body, params.toSeq)
   }
 }
