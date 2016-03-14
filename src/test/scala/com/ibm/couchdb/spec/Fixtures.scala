@@ -56,7 +56,7 @@ trait Fixtures {
       map =
           """
             |function(doc) {
-            | emit(doc.doc.name, doc.doc.name);
+            |  emit(doc.doc.name, doc.doc.name);
             |}
           """.stripMargin)
 
@@ -64,13 +64,13 @@ trait Fixtures {
       map =
           """
             |function(doc) {
-            | emit(doc._id, doc.doc.age);
+            |  emit(doc._id, doc.doc.age);
             |}
           """.stripMargin,
       reduce =
           """
             |function(key, values, rereduce) {
-            | return sum(values);
+            |  return sum(values);
             |}
           """.stripMargin)
 
@@ -78,8 +78,8 @@ trait Fixtures {
       map =
           """
             |function(doc) {
-            | var d = doc.doc;
-            | emit([d.age, d.name], d);
+            |  var d = doc.doc;
+            |  emit([d.age, d.name], d);
             |}
           """.stripMargin)
 
@@ -87,7 +87,7 @@ trait Fixtures {
       map =
           """
             |function(doc) {
-            | emit([doc.kind, doc._id], doc._id);
+            |  emit([doc.kind, doc._id], doc._id);
             |}
           """.stripMargin)
   }
@@ -114,15 +114,15 @@ trait Fixtures {
       FixShows.csv ->
       """
         |function(doc, req) {
-        | if (doc !== null && doc.kind == "Person") {
-        |   var res = doc.doc.name + ',' + doc.doc.age;
-        |   if (typeof req.query.extra !== "undefined") {
-        |     res += ',' + req.query.extra;
-        |   }
-        |   return res;
-        | } else {
-        |   return 'empty show';
-        | }
+        |  if (doc !== null && doc.kind == "Person") {
+        |    var res = doc.doc.name + ',' + doc.doc.age;
+        |    if (typeof req.query.extra !== "undefined") {
+        |      res += ',' + req.query.extra;
+        |    }
+        |    return res;
+        |  } else {
+        |    return 'empty show';
+        |  }
         |}
       """.stripMargin),
 
@@ -130,17 +130,17 @@ trait Fixtures {
       FixLists.csvAll ->
       """
         |function(head, req) {
-        | var row = getRow();
-        | if (!row) {
-        |  return 'no rows';
-        | }
-        | if (typeof req.query.header !== "undefined" && req.query.header) {
-        |  send('name,age\n');
-        | }
-        | send(row.value.name + ',' + row.value.age + '\n');
-        | while (row = getRow()) {
-        |   send(row.value.name + ',' + row.value.age + '\n');
-        | }
+        |  var row = getRow();
+        |  if (!row) {
+        |    return 'no rows';
+        |  }
+        |  if (typeof req.query.header !== "undefined" && req.query.header) {
+        |    send('name,age\n');
+        |  }
+        |  send(row.value.name + ',' + row.value.age + '\n');
+        |  while (row = getRow()) {
+        |    send(row.value.name + ',' + row.value.age + '\n');
+        |  }
         |}
       """.stripMargin)
 
