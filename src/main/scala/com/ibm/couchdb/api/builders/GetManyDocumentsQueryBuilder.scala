@@ -25,22 +25,22 @@ import upickle.default.write
 import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
-case class GetManyDocumentsQueryBuilder(client: Client,
-                                        db: String,
-                                        typeMappings: TypeMapping,
-                                        params: Map[String, String] =
-                                        Map.empty[String, String]) extends QueryStrategy {
+case class GetManyDocumentsQueryBuilder(
+    client: Client,
+    db: String,
+    typeMappings: TypeMapping,
+    params: Map[String, String] = Map.empty[String, String]) extends QueryStrategy {
 
   private val log = org.log4s.getLogger
 
   lazy val tempTypeFilterView: CouchView = {
     CouchView(
-               map =
-                 """
-                   |function(doc) {
-                   | emit([doc.kind, doc._id], doc._id);
-                   |}
-                 """.stripMargin)
+      map =
+          """
+            |function(doc) {
+            | emit([doc.kind, doc._id], doc._id);
+            |}
+          """.stripMargin)
   }
 
   def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
@@ -111,35 +111,34 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchKeyVals[String, CouchDocRev]](ids, params)
   }
 
-  def queryAllowMissing(ids: Seq[String]):
-  Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
+  def queryAllowMissing(
+      ids: Seq[String]): Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
     queryByIds[CouchKeyValsIncludesMissing[String, CouchDocRev]](ids, params)
   }
 
   @deprecated(
-               "Fails if different document types exist in the Db. " +
-               "Use `queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) " +
-               "instead", "0.7.1")
+    "Fails if different document types exist in the Db. " +
+    "Use `queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) " +
+    "instead", "0.7.1")
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
     queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs().params)
   }
 
   def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
-                                        (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]):
-  Task[CouchDocs[K, V, D]] = {
+      (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
     typeMappings.forType(tag.runtimeClass) match {
       case Some(k) => queryByType[K, V, D](typeFilterView, k)
-      case None => Res.Error("not_found", s"type mapping not found").toTask[CouchDocs[K, V, D]]
+      case None => Res.Error("not_found", s"type mapping not found").toTask
     }
   }
 
-  def queryByTypeIncludeDocsWithTemporaryView[D: R](implicit tag: ClassTag[D]):
-  Task[CouchDocs[(String, String), String, D]] = {
+  def queryByTypeIncludeDocsWithTemporaryView[D: R](
+      implicit tag: ClassTag[D]): Task[CouchDocs[(String, String), String, D]] = {
     log.warn(
-              "Only use `queryByTypeIncludeDocsWithTemporaryView[D: R]` for development purposes." +
-              "It uses temporary views to perform type based filters and is inefficient. " +
-              "Instead, create a permanent view for type based filtering and use the " +
-              "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
+      "Only use `queryByTypeIncludeDocsWithTemporaryView[D: R]` for development purposes." +
+      "It uses temporary views to perform type based filters and is inefficient. " +
+      "Instead, create a permanent view for type based filtering and use the " +
+      "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
@@ -147,16 +146,15 @@ case class GetManyDocumentsQueryBuilder(client: Client,
     queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
-  def queryIncludeDocsAllowMissing[D: R](ids: Seq[String]):
-  Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
+  def queryIncludeDocsAllowMissing[D: R](
+      ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
   }
 
   private def queryByType[K, V, D: R](view: CouchView, kind: String)
-                                     (implicit kr: R[K], kw: W[K], vr: R[V]):
-  Task[CouchDocs[K, V, D]] = {
+      (implicit kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
     new Query(client, db).temporaryView[K, V](view) match {
-      case Some(v) => v.startKey(Tuple1(kind)).endKey(Tuple2(kind,{})).queryIncludeDocs
+      case Some(v) => v.startKey(Tuple1(kind)).endKey(Tuple2(kind, {})).queryIncludeDocs
       case None => Res.Error("not_found", "invalid view specified").toTask
     }
   }

@@ -24,11 +24,12 @@ import upickle.default.write
 
 import scalaz.concurrent.Task
 
-case class ListQueryBuilder(client: Client,
-                            db: String,
-                            design: String,
-                            list: String,
-                            params: Map[String, String] = Map.empty[String, String]) {
+case class ListQueryBuilder(
+    client: Client,
+    db: String,
+    design: String,
+    list: String,
+    params: Map[String, String] = Map.empty[String, String]) {
 
   def format(format: String): ListQueryBuilder = {
     set("format", format)
@@ -104,7 +105,7 @@ case class ListQueryBuilder(client: Client,
 
   def query(view: String): Task[String] = {
     if (view.isEmpty)
-      Res.Error("not_found", "View name must not be empty").toTask[String]
+      Res.Error("not_found", "View name must not be empty").toTask
     else
       client.getRaw(
         s"/$db/_design/$design/_list/$list/$view",
@@ -114,12 +115,11 @@ case class ListQueryBuilder(client: Client,
 
   def queryAnotherDesign(view: String, anotherDesign: String): Task[String] = {
     if (view.isEmpty)
-      Res.Error("not_found", "View name must not be empty").toTask[String]
+      Res.Error("not_found", "View name must not be empty").toTask
     else
       client.getRaw(
         s"/$db/_design/$anotherDesign/_list/$list/$view",
         Status.Ok,
         params.toSeq)
   }
-
 }

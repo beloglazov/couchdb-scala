@@ -66,20 +66,17 @@ wartremover.wartremoverErrors in (Compile, compile) ++= Seq(
   wartremover.Wart.ListOps
 )
 
-
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
 compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value
 
 (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle
 
-
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
 testScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Test).toTask("").value
 
 (test in Test) <<= (test in Test) dependsOn testScalastyle
-
 
 testFrameworks := Seq(TestFrameworks.Specs2, TestFrameworks.ScalaCheck)
 
@@ -89,10 +86,10 @@ unmanagedSourceDirectories in Compile += baseDirectory.value / "examples" / "src
 
 initialCommands in console := "import scalaz._, Scalaz._"
 
-initialCommands in console in Test := "import scalaz._, Scalaz._, scalacheck.ScalazProperties._, scalacheck.ScalazArbitrary._,scalacheck.ScalaCheckBinding._"
+initialCommands in console in Test := "import scalaz._, Scalaz._, scalacheck.ScalazProperties._, " +
+                                      "scalacheck.ScalazArbitrary._,scalacheck.ScalaCheckBinding._"
 
 logBuffered := false
-
 
 publishMavenStyle := true
 

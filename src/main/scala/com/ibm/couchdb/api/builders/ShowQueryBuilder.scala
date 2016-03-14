@@ -22,11 +22,12 @@ import org.http4s.Status
 
 import scalaz.concurrent.Task
 
-case class ShowQueryBuilder(client: Client,
-                            db: String,
-                            design: String,
-                            show: String,
-                            params: Map[String, String] = Map.empty[String, String]) {
+case class ShowQueryBuilder(
+    client: Client,
+    db: String,
+    design: String,
+    show: String,
+    params: Map[String, String] = Map.empty[String, String]) {
 
   def details(details: Boolean = true): ShowQueryBuilder = {
     set("details", details)
@@ -57,12 +58,11 @@ case class ShowQueryBuilder(client: Client,
 
   def query(id: String): Task[String] = {
     if (id.isEmpty)
-      Res.Error("not_found", "Document ID must not be empty").toTask[String]
+      Res.Error("not_found", "Document ID must not be empty").toTask
     else
       client.getRaw(
         s"/$db/_design/$design/_show/$show/$id",
         Status.Ok,
         params.toSeq)
   }
-
 }

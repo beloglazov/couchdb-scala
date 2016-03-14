@@ -154,9 +154,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val fixXMen = Seq(fixProfessorX, fixMagneto)
       val createdXMen = awaitRight(documents.createMany(fixXMen))
       val docs = awaitRight(
-                             documents.getMany.
-                             queryByTypeIncludeDocs[(String, String), String, FixXPerson]
-                               (FixViews.typeFilterView))
+        documents.getMany.queryByTypeIncludeDocs[(String, String), String, FixXPerson](
+          FixViews.typeFilterView))
       docs.total_rows mustEqual 4
       docs.rows must haveLength(2)
       docs.rows.map(_.value) mustEqual createdXMen.map(_.id)
@@ -187,7 +186,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docs = awaitRight(documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
+      val docs = awaitRight(
+        documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
       docs.offset mustEqual 0
       docs.rows must haveLength(missingIds.length + existingIds.length)
       docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
@@ -251,7 +251,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(documents.attach(aliceRes, fixAttachmentName, fixAttachmentData))
       val url = s"http://${SpecConfig.couchDbHost}:${SpecConfig.couchDbPort}" +
-        s"/${db}/${aliceRes._id}/${fixAttachmentName}"
+                s"/${db}/${aliceRes._id}/${fixAttachmentName}"
       awaitRight(documents.getAttachmentUrl(aliceRes, fixAttachmentName)) mustEqual url
       awaitRight(documents.getAttachment(aliceRes, fixAttachmentName)) mustEqual fixAttachmentData
     }
@@ -260,8 +260,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(
-        documents.attach(
-          aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
+        documents.attach(aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
         aliceRes._id)
       val doc = awaitRight(documents.get[FixPerson](aliceRes._id))
       doc._id mustEqual aliceRes._id
@@ -279,8 +278,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(
-        documents.attach(
-          aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
+        documents.attach(aliceRes, fixAttachmentName, fixAttachmentData, fixAttachmentContentType),
         aliceRes._id)
       val doc = awaitRight(documents.get.attachments().query[FixPerson](aliceRes._id))
       doc._id mustEqual aliceRes._id
@@ -333,8 +331,8 @@ class DocumentsSpec extends CouchDbSpecification {
       checkDocOk(docOk, aliceRes._id)
       val doc = awaitRight(documents.get.attachments().query[FixPerson](created.id))
       doc._id mustEqual created.id
-      doc._attachments.keys must containTheSameElementsAs(Seq(fixAttachmentName,
-                                                              fixAttachment2Name))
+      doc._attachments.keys must containTheSameElementsAs(
+        Seq(fixAttachmentName, fixAttachment2Name))
       val attachment = doc._attachments(fixAttachmentName)
       attachment.content_type mustEqual fixAttachmentContentType
       attachment.length mustEqual -1
@@ -369,7 +367,6 @@ class DocumentsSpec extends CouchDbSpecification {
       }
       def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] =
         orig.map(x => x applyLens _docPersonName modify change)
-
       def createAndModify: (Seq[FixPerson]) => Seq[CouchDoc[FixPerson]] = create _ andThen modify
 
       "update all documents when valid Ids and Rev" >> {
@@ -377,21 +374,24 @@ class DocumentsSpec extends CouchDbSpecification {
         val updatedDocs = awaitRight(documents.updateMany(modified)).map(_.id)
         updatedDocs.size mustEqual fixes.size
         val updateDocs = awaitRight(documents.getMany[FixPerson](modified.map(_._id)))
-        updateDocs.getDocs.map(_.doc) mustEqual fixes.map(x => FixPerson(change(x.name), age = x.age))
+        updateDocs.getDocs.map(_.doc) mustEqual fixes.map(
+          x => FixPerson(change(x.name), age = x.age))
       }
 
       "fail if one or more elements is missing Id" >> {
         val modified = createAndModify(fixes)
         val withInvalidId = modified.updated(2, modified(2).copy(_id = ""))
         awaitError(documents.updateMany(withInvalidId), "cannot_update")
-        awaitRight(documents.getMany[FixPerson](modified.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+        awaitRight(documents.getMany[FixPerson](modified.map(_._id)))
+            .getDocs.map(_.doc) mustEqual fixes
       }
 
       "fail if one or more elements is missing Rev" >> {
         val modified = createAndModify(fixes)
         val withInvalidRev = modified.updated(1, modified(1).copy(_rev = ""))
         awaitError(documents.updateMany(withInvalidRev), "cannot_update")
-        awaitRight(documents.getMany[FixPerson](modified.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+        awaitRight(documents.getMany[FixPerson](modified.map(_._id)))
+            .getDocs.map(_.doc) mustEqual fixes
       }
     }
 
@@ -416,14 +416,16 @@ class DocumentsSpec extends CouchDbSpecification {
         val created = create(fixes)
         val withInvalidId = created.updated(1, created(1).copy(_id = ""))
         awaitError(documents.deleteMany(withInvalidId), "cannot_update")
-        awaitRight(documents.getMany[FixPerson](created.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+        awaitRight(documents.getMany[FixPerson](created.map(_._id)))
+            .getDocs.map(_.doc) mustEqual fixes
       }
 
       "fail if one or more elements is missing a Rev" >> {
         val created = create(fixes)
         val withInvalidRev = created.updated(2, created(2).copy(_id = ""))
         awaitError(documents.deleteMany(withInvalidRev), "cannot_update")
-        awaitRight(documents.getMany[FixPerson](created.map(_._id))).getDocs.map(_.doc) mustEqual fixes
+        awaitRight(documents.getMany[FixPerson](created.map(_._id)))
+            .getDocs.map(_.doc) mustEqual fixes
       }
     }
   }

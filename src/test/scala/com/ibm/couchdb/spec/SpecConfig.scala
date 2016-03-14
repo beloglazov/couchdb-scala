@@ -30,5 +30,4 @@ object SpecConfig {
   log.info(s"couchDbHost: $couchDbHost")
   log.info(s"couchDbPort: $couchDbPort")
   log.info("----------------------")
-
 }

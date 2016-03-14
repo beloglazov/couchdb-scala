@@ -56,14 +56,13 @@ class CouchDbSpec extends CouchDbSpecification {
         awaitDocOk(db.docs.create(fixAlice))
         awaitDocOk(db.design.create(fixDesign))
 
-        val docs = awaitRight(db.query.view[String, String](fixDesign.name, FixViews.names).get.query)
+        val docs = awaitRight(
+          db.query.view[String, String](fixDesign.name, FixViews.names).get.query)
         docs.rows must haveLength(1)
       }
 
       testDb(db1)
       testDb(db2)
     }
-
   }
-
 }

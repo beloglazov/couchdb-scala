@@ -54,7 +54,5 @@ class DatabasesSpec extends CouchDbSpecification {
       awaitOk(databases.create(db))
       awaitOk(databases.delete(db))
     }
-
   }
-
 }

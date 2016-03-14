@@ -54,7 +54,8 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
     }
 
     "Query a temporary view with reducer given keys" >> {
-      val docs = awaitRight(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
+      val docs = awaitRight(
+        aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
       docs.rows must haveLength(2)
       docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
       docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
@@ -121,6 +122,5 @@ class QueryTemporaryViewSpec extends CouchDbSpecification {
       docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
       docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob)
     }
-
   }
 }

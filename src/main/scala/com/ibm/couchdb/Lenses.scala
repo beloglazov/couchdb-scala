@@ -22,5 +22,4 @@ object Lenses {
 
   def _couchDoc[A, B]: PLens[CouchDoc[A], CouchDoc[B], A, B] =
     PLens[CouchDoc[A], CouchDoc[B], A, B](_.doc)(d => cd => cd.copy(doc = d))
-
 }

@@ -36,7 +36,8 @@ trait Fixtures {
   val _docPersonName = _couchDoc composeLens _personName
   val _docPersonAge  = _couchDoc composeLens _personAge
 
-  val fixProfessorX = FixXPerson("Charles Xavier", "Professor X", "Telepathy, Astral projection, Mind control")
+  val fixProfessorX = FixXPerson(
+    "Charles Xavier", "Professor X", "Telepathy, Astral projection, Mind control")
   val fixMagneto    = FixXPerson("Max Eisenhardt", "Magneto", "Magnetism manipulation")
 
   val fixAlice    = FixPerson("Alice", 25)
@@ -52,43 +53,43 @@ trait Fixtures {
     val typeFilter = "typeFilter"
 
     val namesView = CouchView(
-                               map =
-                                 """
-                                   |function(doc) {
-                                   | emit(doc.doc.name, doc.doc.name);
-                                   |}
-                                 """.stripMargin)
+      map =
+          """
+            |function(doc) {
+            |  emit(doc.doc.name, doc.doc.name);
+            |}
+          """.stripMargin)
 
     val reducedView = CouchView(
-                                 map =
-                                   """
-                                     |function(doc) {
-                                     | emit(doc._id, doc.doc.age);
-                                     |}
-                                   """.stripMargin,
-                                 reduce =
-                                   """
-                                     |function(key, values, rereduce) {
-                                     | return sum(values);
-                                     |}
-                                   """.stripMargin)
+      map =
+          """
+            |function(doc) {
+            |  emit(doc._id, doc.doc.age);
+            |}
+          """.stripMargin,
+      reduce =
+          """
+            |function(key, values, rereduce) {
+            |  return sum(values);
+            |}
+          """.stripMargin)
 
     val compoundView = CouchView(
-                                  map =
-                                    """
-                                      |function(doc) {
-                                      | var d = doc.doc;
-                                      | emit([d.age, d.name], d);
-                                      |}
-                                    """.stripMargin)
+      map =
+          """
+            |function(doc) {
+            |  var d = doc.doc;
+            |  emit([d.age, d.name], d);
+            |}
+          """.stripMargin)
 
     val typeFilterView = CouchView(
-                                    map =
-                                      """
-                                        |function(doc) {
-                                        | emit([doc.kind, doc._id], doc._id);
-                                        |}
-                                      """.stripMargin)
+      map =
+          """
+            |function(doc) {
+            |  emit([doc.kind, doc._id], doc._id);
+            |}
+          """.stripMargin)
   }
 
   object FixShows {
@@ -103,53 +104,52 @@ trait Fixtures {
     name = "test-design",
 
     views = Map(
-                 FixViews.names -> FixViews.namesView,
-                 FixViews.reduced -> FixViews.reducedView,
-                 FixViews.compound -> FixViews.compoundView,
-                 FixViews.typeFilter -> FixViews.typeFilterView
-               ),
+      FixViews.names -> FixViews.namesView,
+      FixViews.reduced -> FixViews.reducedView,
+      FixViews.compound -> FixViews.compoundView,
+      FixViews.typeFilter -> FixViews.typeFilterView
+    ),
 
     shows = Map(
       FixShows.csv ->
-        """
-          |function(doc, req) {
-          | if (doc !== null && doc.kind == "Person") {
-          |   var res = doc.doc.name + ',' + doc.doc.age;
-          |   if (typeof req.query.extra !== "undefined") {
-          |     res += ',' + req.query.extra;
-          |   }
-          |   return res;
-          | } else {
-          |   return 'empty show';
-          | }
-          |}
-        """.stripMargin),
+      """
+        |function(doc, req) {
+        |  if (doc !== null && doc.kind == "Person") {
+        |    var res = doc.doc.name + ',' + doc.doc.age;
+        |    if (typeof req.query.extra !== "undefined") {
+        |      res += ',' + req.query.extra;
+        |    }
+        |    return res;
+        |  } else {
+        |    return 'empty show';
+        |  }
+        |}
+      """.stripMargin),
 
     lists = Map(
       FixLists.csvAll ->
-        """
-          |function(head, req) {
-          | var row = getRow();
-          | if (!row) {
-          |  return 'no rows';
-          | }
-          | if (typeof req.query.header !== "undefined" && req.query.header) {
-          |  send('name,age\n');
-          | }
-          | send(row.value.name + ',' + row.value.age + '\n');
-          | while (row = getRow()) {
-          |   send(row.value.name + ',' + row.value.age + '\n');
-          | }
-          |}
-        """.stripMargin)
+      """
+        |function(head, req) {
+        |  var row = getRow();
+        |  if (!row) {
+        |    return 'no rows';
+        |  }
+        |  if (typeof req.query.header !== "undefined" && req.query.header) {
+        |    send('name,age\n');
+        |  }
+        |  send(row.value.name + ',' + row.value.age + '\n');
+        |  while (row = getRow()) {
+        |    send(row.value.name + ',' + row.value.age + '\n');
+        |  }
+        |}
+      """.stripMargin)
 
   )
 
-  val fixAttachmentName          = "attachment"
-  val fixAttachmentData          = Array[Byte](-1, 0, 1, 2, 3)
-  val fixAttachmentContentType   = "image/jpg"
-  val fixAttachment2Name         = "attachment2"
-  val fixAttachment2Data         = Array[Byte](-1, 0, 1, 2, 3, 4, 5)
-  val fixAttachment2ContentType  = `Content-Type`(MediaType.`image/png`)
-
+  val fixAttachmentName         = "attachment"
+  val fixAttachmentData         = Array[Byte](-1, 0, 1, 2, 3)
+  val fixAttachmentContentType  = "image/jpg"
+  val fixAttachment2Name        = "attachment2"
+  val fixAttachment2Data        = Array[Byte](-1, 0, 1, 2, 3, 4, 5)
+  val fixAttachment2ContentType = `Content-Type`(MediaType.`image/png`)
 }

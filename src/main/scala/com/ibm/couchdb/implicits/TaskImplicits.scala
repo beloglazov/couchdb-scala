@@ -27,6 +27,5 @@ trait TaskImplicits {
       task.attempt.map(_ => Res.Ok())
     }
   }
-
 }
 

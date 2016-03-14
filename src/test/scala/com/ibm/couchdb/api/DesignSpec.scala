@@ -31,7 +31,7 @@ class DesignSpec extends CouchDbSpecification {
 
     "Create a design document" >> {
       clear()
-      awaitDocOk(design.create(fixDesign), s"_design/${ fixDesign.name }")
+      awaitDocOk(design.create(fixDesign), s"_design/${fixDesign.name}")
     }
 
     "Get info about a design document" >> {
@@ -47,7 +47,7 @@ class DesignSpec extends CouchDbSpecification {
       clear()
       awaitDocOk(design.create(fixDesign))
       val doc = awaitRight(design.get(fixDesign.name))
-      doc._id mustEqual s"_design/${ fixDesign.name }"
+      doc._id mustEqual s"_design/${fixDesign.name}"
       doc._rev must beRev
       doc.views must haveKey("names")
     }
@@ -56,7 +56,7 @@ class DesignSpec extends CouchDbSpecification {
       clear()
       val created = awaitRight(design.create(fixDesign))
       val doc = awaitRight(design.getById(created.id))
-      doc._id mustEqual s"_design/${ fixDesign.name }"
+      doc._id mustEqual s"_design/${fixDesign.name}"
       doc._rev must beRev
       doc.views must haveKey("names")
     }
@@ -66,7 +66,7 @@ class DesignSpec extends CouchDbSpecification {
       awaitDocOk(design.create(fixDesign))
       val initial = awaitRight(design.get(fixDesign.name))
       val docOk = awaitRight(design.update(initial.copy(language = "typescript")))
-      checkDocOk(docOk, s"_design/${ fixDesign.name }")
+      checkDocOk(docOk, s"_design/${fixDesign.name}")
       val updated = awaitRight(design.get(fixDesign.name))
       updated._rev mustEqual docOk.rev
       updated._id mustEqual initial._id
@@ -78,13 +78,13 @@ class DesignSpec extends CouchDbSpecification {
       clear()
       awaitDocOk(design.create(fixDesign))
       val doc = awaitRight(design.get(fixDesign.name))
-      awaitDocOk(design.delete(doc), s"_design/${ fixDesign.name }")
+      awaitDocOk(design.delete(doc), s"_design/${fixDesign.name}")
     }
 
     "Delete a design document by name" >> {
       clear()
       awaitDocOk(design.create(fixDesign))
-      awaitDocOk(design.deleteByName(fixDesign.name), s"_design/${ fixDesign.name }")
+      awaitDocOk(design.deleteByName(fixDesign.name), s"_design/${fixDesign.name}")
     }
 
     "Attach a byte array to a design" >> {
@@ -148,7 +148,5 @@ class DesignSpec extends CouchDbSpecification {
       awaitDocOk(design.deleteAttachment(docWithAttachment, fixAttachmentName), attachment.id)
       awaitError(design.getAttachment(doc, fixAttachmentName), "not_found")
     }
-
   }
-
 }

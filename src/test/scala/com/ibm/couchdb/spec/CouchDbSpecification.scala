@@ -29,15 +29,16 @@ import scalaz._
 import scalaz.concurrent.Task
 
 trait CouchDbSpecification extends Specification with
-                                   Fixtures with
-                                   AllExpectations with
-                                   DisjunctionMatchers with
-                                   MatcherMacros with
-                                   TaskImplicits with
-                                   UpickleImplicits {
+    Fixtures with
+    AllExpectations with
+    DisjunctionMatchers with
+    MatcherMacros with
+    TaskImplicits with
+    UpickleImplicits {
   sequential
 
-  val client = new Client(Config(SpecConfig.couchDbHost, SpecConfig.couchDbPort, https = false, None))
+  val client = new Client(
+    Config(SpecConfig.couchDbHost, SpecConfig.couchDbPort, https = false, None))
 
   def await[T](future: Task[T]): Throwable \/ T = future.attemptRun
 
@@ -91,5 +92,4 @@ trait CouchDbSpecification extends Specification with
       _ <- databases.create(name)
     } yield ()
   }
-
 }

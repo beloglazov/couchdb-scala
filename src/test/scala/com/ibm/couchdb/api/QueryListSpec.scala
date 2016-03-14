@@ -60,8 +60,5 @@ class QueryListSpec extends CouchDbSpecification {
       val expected = "Carl,20\nAlice,25\nBob,30\n"
       awaitRight(list.queryAnotherDesign(FixViews.compound, fixDesign.name)) mustEqual expected
     }
-
-
   }
-
 }
