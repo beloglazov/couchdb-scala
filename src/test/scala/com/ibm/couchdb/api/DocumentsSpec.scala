@@ -18,10 +18,7 @@ package com.ibm.couchdb.api
 
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
 import com.ibm.couchdb.{CouchAttachment, CouchDoc}
-import monocle.syntax._
 import org.http4s.Status
-
-import scala.language.experimental.macros
 
 class DocumentsSpec extends CouchDbSpecification {
 
@@ -209,7 +206,7 @@ class DocumentsSpec extends CouchDbSpecification {
     "Update a document" >> {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
-      val docOk = awaitRight(documents.update(aliceRes applyLens _docPersonAge modify (_ + 1)))
+      val docOk = awaitRight(documents.update((_docPersonAge modify (_ + 1)) (aliceRes)))
       checkDocOk(docOk, aliceRes._id)
       val aliceRes2 = awaitRight(documents.get[FixPerson](aliceRes._id))
       aliceRes2._id mustEqual aliceRes._id
@@ -227,8 +224,8 @@ class DocumentsSpec extends CouchDbSpecification {
     "Fail to update a document with an outdated revision" >> {
       val created = awaitRight(documents.create(fixAlice))
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
-      await(documents.update(aliceRes applyLens _docPersonAge set 26))
-      val error = awaitLeft(documents.update(aliceRes applyLens _docPersonAge set 27))
+      await(documents.update((_docPersonAge set 26) (aliceRes)))
+      val error = awaitLeft(documents.update((_docPersonAge set 27) (aliceRes)))
       error.status mustEqual Status.Conflict
       error.error mustEqual "conflict"
     }
@@ -366,7 +363,7 @@ class DocumentsSpec extends CouchDbSpecification {
         awaitRight(documents.getMany[FixPerson](newIds)).getDocs
       }
       def modify(orig: Seq[CouchDoc[FixPerson]]): Seq[CouchDoc[FixPerson]] =
-        orig.map(x => x applyLens _docPersonName modify change)
+        orig.map(x => (_docPersonName modify change) (x))
       def createAndModify: (Seq[FixPerson]) => Seq[CouchDoc[FixPerson]] = create _ andThen modify
 
       "update all documents when valid Ids and Rev" >> {
