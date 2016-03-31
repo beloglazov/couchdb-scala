@@ -10,7 +10,7 @@ name := "couchdb-scala"
 
 version := "0.7.1-SNAPSHOT"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 description := "A purely functional Scala client for CouchDB"
 
@@ -20,20 +20,20 @@ licenses := Seq("The Apache Software License, Version 2.0"
   -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "org.scalaz"                  %% "scalaz-core"                 % "7.1.3",
-  "org.scalaz"                  %% "scalaz-effect"               % "7.1.3",
-  "org.http4s"                  %% "http4s-core"                 % "0.12.1",
-  "org.http4s"                  %% "http4s-client"               % "0.12.1",
-  "org.http4s"                  %% "http4s-blaze-client"         % "0.12.1",
-  "com.lihaoyi"                 %% "upickle"                     % "0.3.8",
-  "com.github.julien-truffaut"  %% "monocle-core"                % "1.1.1",
-  "com.github.julien-truffaut"  %% "monocle-macro"               % "1.1.1",
-  "org.log4s"                   %% "log4s"                       % "1.2.0",
-  "org.specs2"                  %% "specs2"                      % "2.4.17" % "test",
+  "org.scalaz"                  %% "scalaz-core"                 % "7.2.1",
+  "org.scalaz"                  %% "scalaz-effect"               % "7.2.1",
+  "org.http4s"                  %% "http4s-core"                 % "0.13.0a",
+  "org.http4s"                  %% "http4s-client"               % "0.13.0a",
+  "org.http4s"                  %% "http4s-blaze-client"         % "0.13.0a",
+  "com.lihaoyi"                 %% "upickle"                     % "0.3.9",
+  "com.github.julien-truffaut"  %% "monocle-core"                % "1.2.0",
+  "com.github.julien-truffaut"  %% "monocle-macro"               % "1.2.0",
+  "org.log4s"                   %% "log4s"                       % "1.2.1",
+  "org.specs2"                  %% "specs2"                      % "3.7" % "test",
   "org.typelevel"               %% "scalaz-specs2"               % "0.3.0"  % "test",
   "org.scalacheck"              %% "scalacheck"                  % "1.13.0" % "test",
-  "org.scalaz"                  %% "scalaz-scalacheck-binding"   % "7.1.3"  % "test",
-  "ch.qos.logback"              %  "logback-classic"             % "1.1.3"  % "test"
+  "org.scalaz"                  %% "scalaz-scalacheck-binding"   % "7.2.1"  % "test",
+  "ch.qos.logback"              %  "logback-classic"             % "1.1.6"  % "test"
 )
 
 scalacOptions ++= Seq(
