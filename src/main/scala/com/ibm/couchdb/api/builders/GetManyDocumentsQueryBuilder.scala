@@ -26,25 +26,18 @@ import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
 sealed trait DocsInResult
-
 abstract class IncludeDoc[D: R] extends DocsInResult
-
-trait ExcludeDocs extends DocsInResult
+abstract class ExcludeDocs extends DocsInResult
 
 sealed trait MissingIdsInQuery
-
 trait MissingAllowed extends MissingIdsInQuery
-
 trait MissingNotAllowed extends MissingIdsInQuery
 
 sealed trait DocType
-
 abstract class ForDocType[D: R, K: R, V: R] extends DocType
+abstract class AnyDocType extends DocType
 
-trait AnyDocType extends DocType
-
-case class GetManyDocumentsQueryBuilder[ID <: DocsInResult,
-AM <: MissingIdsInQuery, BT <: DocType](
+case class GetManyDocumentsQueryBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType](
     client: Client,
     db: String,
     typeMappings: TypeMapping,
@@ -54,14 +47,12 @@ AM <: MissingIdsInQuery, BT <: DocType](
   private val log = org.log4s.getLogger
 
   def conflicts(
-      conflicts: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT]
-  = {
+      conflicts: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT]("conflicts", conflicts)
   }
 
   def descending(
-      descending: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM,
-      BT] = {
+      descending: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT]("descending", descending)
   }
 
@@ -92,16 +83,13 @@ AM <: MissingIdsInQuery, BT <: DocType](
   }
 
   def byTypeUsingTemporaryView[D: R]:
-  GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, ForDocType[(String, String), String, D]]
-  = {
+  GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, ForDocType[(String, String), String, D]] = {
     set[IncludeDoc[D], AM, ForDocType[(String, String), String, D]](
-      params, ids,
-      QueryUtils.tempTypeFilterView)
+      params, ids, QueryUtils.tempTypeFilterView)
   }
 
   def inclusiveEnd(
-      inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM,
-      BT] = {
+      inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT]("inclusive_end", inclusiveEnd)
   }
 
@@ -132,21 +120,19 @@ AM <: MissingIdsInQuery, BT <: DocType](
   }
 
   def updateSeq(
-      updateSeq: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT]
-  = {
+      updateSeq: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT]("update_seq", updateSeq)
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]
   (_params: Map[String, String], _ids: Seq[String], _view: CouchView):
-  GetManyDocumentsQueryBuilder[I,
-      A, B] = {
+  GetManyDocumentsQueryBuilder[I, A, B] = {
     new GetManyDocumentsQueryBuilder[I, A, B](client, db, typeMappings, _params, _ids, _view)
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType](
       key: String, value: String): GetManyDocumentsQueryBuilder[I, A, B] = {
-    set[I, A, B](params.updated(key, value), ids, view)
+    set(params.updated(key, value), ids, view)
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType](
@@ -276,8 +262,7 @@ object GetManyDocumentsQueryBuilder {
     }
 
   implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
-      builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V,
-          D]])
+      builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V, D]])
       (implicit tag: ClassTag[D], kw: W[K]):
   BuildReady[QueryByType[K, V, D]] = {
     new BuildReady[QueryByType[K, V, D]] {
