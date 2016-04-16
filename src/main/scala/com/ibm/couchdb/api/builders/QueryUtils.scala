@@ -16,14 +16,12 @@
 
 package com.ibm.couchdb.api.builders
 
-import com.ibm.couchdb.api.Query
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.{CouchDocs, CouchView, Req, Res, TypeMapping}
+import com.ibm.couchdb.{CouchView, Req}
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default._
 
-import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
 object QueryUtils {
@@ -62,51 +60,5 @@ object QueryUtils {
       body: B,
       params: Map[String, String]): Task[Q] = {
     client.post[B, Q](url, Status.Ok, body, params.toSeq)
-  }
-}
-
-
-case class QueryBasic[C: R](
-    client: Client, db: String, params: Map[String, String] = Map.empty,
-    ids: Seq[String] = Seq.empty) {
-  def query: Task[C] = {
-    val url = s"/$db/_all_docs"
-    ids match {
-      case Nil => QueryUtils.postQuery[C](client, db, url, params)
-      case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
-    }
-  }
-}
-
-case class QueryIncludeDocs[C: R, D: R](
-    client: Client, db: String, params: Map[String, String] = Map.empty,
-    ids: Seq[String] = Seq.empty) {
-  def query: Task[C] = {
-    val url = s"/$db/_all_docs"
-    ids match {
-      case Nil => QueryUtils.postQuery[C](client, db, url, params)
-      case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
-    }
-  }
-}
-
-case class QueryByType[K, V, D: R](
-    client: Client, db: String, typeFilterView: CouchView,
-    typeMappings: TypeMapping,
-    params: Map[String, String] = Map.empty, ids: Seq[String] = Seq.empty)
-    (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]) {
-
-  def query: Task[CouchDocs[K, V, D]] = {
-    typeMappings.forType(tag.runtimeClass) match {
-      case Some(k) => queryByType(typeFilterView, k)
-      case None => Res.Error("not_found", s"type mapping not found").toTask
-    }
-  }
-
-  private def queryByType(view: CouchView, kind: String, ps: Map[String, String] = Map.empty) = {
-    new Query(client, db).temporaryView[K, V](view) match {
-      case Some(v) => v.startKey(Tuple1(kind)).endKey(Tuple2(kind, {})).queryIncludeDocs[D]
-      case None => Res.Error("not_found", "invalid view specified").toTask
-    }
   }
 }
