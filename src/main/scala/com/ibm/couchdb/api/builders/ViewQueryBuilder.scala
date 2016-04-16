@@ -17,6 +17,7 @@
 package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
+import com.ibm.couchdb.api.builders.QueryUtils._
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
@@ -30,8 +31,7 @@ case class ViewQueryBuilder[K, V] private(
     view: Option[String],
     temporaryView: Option[CouchView] = None,
     params: Map[String, String] = Map.empty[String, String])
-    (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]], dkw: W[Req.DocKeys[K]])
-    extends QueryStrategy {
+    (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]], dkw: W[Req.DocKeys[K]]) {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -144,7 +144,7 @@ case class ViewQueryBuilder[K, V] private(
       temporaryView match {
         case Some(t) => postQuery[Req.ViewWithKeys[K], Q](
           client, db, url, Req.ViewWithKeys(keys = ids, t), ps)
-        case None => queryByIds[K, Q](client, db, url, ids, ps)
+        case None => QueryUtils.queryByIds[K, Q](client, db, url, ids, ps)
       }
     }
   }

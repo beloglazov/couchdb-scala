@@ -19,7 +19,7 @@ package com.ibm.couchdb.api
 import java.nio.file.{Files, Paths}
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.api.builders.{GetDocumentQueryBuilder, GetManyDocumentsQueryBuilder}
+import com.ibm.couchdb.api.builders._
 import com.ibm.couchdb.core.Client
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
@@ -98,7 +98,8 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     get.query[D](id)
   }
 
-  def getMany: GetManyDocumentsQueryBuilder = GetManyDocumentsQueryBuilder(client, db, typeMapping)
+  def getMany: GetManyDocumentsQueryBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType] =
+    GetManyDocumentsQueryBuilder(client, db, typeMapping)
 
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     getMany.queryIncludeDocs[D](ids)
