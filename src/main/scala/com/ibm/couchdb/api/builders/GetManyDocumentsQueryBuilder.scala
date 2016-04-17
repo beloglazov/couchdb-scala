@@ -37,7 +37,8 @@ sealed trait DocType
 abstract class ForDocType[D: R, K: R, V: R] extends DocType
 abstract class AnyDocType extends DocType
 
-case class GetManyDocumentsQueryBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType](
+case class GetManyDocumentsQueryBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery,
+BT <: DocType] private(
     client: Client,
     db: String,
     typeMappings: TypeMapping,
