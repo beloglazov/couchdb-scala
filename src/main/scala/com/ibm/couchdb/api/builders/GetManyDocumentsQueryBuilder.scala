@@ -67,18 +67,25 @@ BT <: DocType] private(
   }
 
   def includeDocs[D: R]: GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, BT] = {
-    set[IncludeDoc[D], AM, BT]("include_docs", true)
+    includeDocs[D](include = true)
+  }
+
+  def includeDocs[D: R](include: Boolean): GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, BT] = {
+    set[IncludeDoc[D], AM, BT]("include_docs", include)
   }
 
   def allowMissing: GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
-    set[ID, MissingAllowed, BT](params, ids, view)
+    allowMissing(allow = true)
   }
 
+  def allowMissing(allow: Boolean): GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
+    set[ID, MissingAllowed, BT](params, ids, view)
+  }
   def withIds(ids: Seq[String]): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT](params, ids, view)
   }
 
-  def byType[K: R, V: R, D: R](_view: CouchView):
+  def byType[K: R, V: R, D: R](view: CouchView):
   GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, ForDocType[K, V, D]] = {
     set[IncludeDoc[D], AM, ForDocType[K, V, D]](params, ids, view)
   }
