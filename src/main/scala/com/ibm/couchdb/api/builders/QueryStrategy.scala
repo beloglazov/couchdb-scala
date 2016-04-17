@@ -32,7 +32,7 @@ case class QueryBasic[C: R](
   def query: Task[C] = {
     val url = s"/$db/_all_docs"
     ids match {
-      case Nil => QueryUtils.postQuery[C](client, db, url, params)
+      case Nil => QueryUtils.query[C](client, db, url, params)
       case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
     }
   }
@@ -44,7 +44,7 @@ case class QueryIncludeDocs[C: R, D: R](
   def query: Task[C] = {
     val url = s"/$db/_all_docs"
     ids match {
-      case Nil => QueryUtils.postQuery[C](client, db, url, params)
+      case Nil => QueryUtils.query[C](client, db, url, params)
       case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
     }
   }

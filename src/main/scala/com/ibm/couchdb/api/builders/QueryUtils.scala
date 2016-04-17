@@ -36,7 +36,7 @@ object QueryUtils {
           """.stripMargin)
   }
 
-  def postQuery[Q: R](
+  def query[Q: R](
       client: Client,
       db: String,
       url: String,

@@ -17,7 +17,6 @@
 package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.api.builders.QueryUtils._
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
@@ -133,8 +132,8 @@ case class ViewQueryBuilder[K, V] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = temporaryView match {
-    case Some(t) => postQuery[CouchView, Q](client, db, url, t, ps)
-    case None => postQuery[Q](client, db, url, ps)
+    case Some(t) => QueryUtils.postQuery[CouchView, Q](client, db, url, t, ps)
+    case None => QueryUtils.query[Q](client, db, url, ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
@@ -142,7 +141,7 @@ case class ViewQueryBuilder[K, V] private(
       Res.Error("not_found", "No IDs specified").toTask
     else {
       temporaryView match {
-        case Some(t) => postQuery[Req.ViewWithKeys[K], Q](
+        case Some(t) => QueryUtils.postQuery[Req.ViewWithKeys[K], Q](
           client, db, url, Req.ViewWithKeys(keys = ids, t), ps)
         case None => QueryUtils.queryByIds[K, Q](client, db, url, ids, ps)
       }

@@ -206,7 +206,7 @@ BT <: DocType] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    QueryUtils.postQuery[Q](client, db, s"/$db/_all_docs", ps)
+    QueryUtils.query[Q](client, db, s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
