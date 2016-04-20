@@ -37,22 +37,14 @@ case class QueryBasic[C: R](
   }
 }
 
-case class QueryIncludeDocs[C: R, D: R](
+class QueryIncludeDocs[C: R, D: R](
     client: Client, db: String, params: Map[String, String] = Map.empty,
-    ids: Seq[String] = Seq.empty) {
-  def query: Task[C] = {
-    val url = s"/$db/_all_docs"
-    ids match {
-      case Nil => QueryUtils.query[C](client, db, url, params)
-      case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
-    }
-  }
-}
+    ids: Seq[String] = Seq.empty) extends QueryBasic[C](client, db, params, ids)
 
 case class QueryByType[K, V, D: R](
     client: Client, db: String, typeFilterView: CouchView,
-    typeMappings: TypeMapping,
-    params: Map[String, String] = Map.empty, ids: Seq[String] = Seq.empty)
+    typeMappings: TypeMapping, params: Map[String, String] = Map.empty,
+    ids: Seq[String] = Seq.empty)
     (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]) {
 
   def query: Task[CouchDocs[K, V, D]] = {

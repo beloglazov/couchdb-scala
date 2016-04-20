@@ -27,7 +27,7 @@ import scalaz.concurrent.Task
 
 sealed trait DocsInResult
 abstract class IncludeDoc[D: R] extends DocsInResult
-abstract class ExcludeDocs extends DocsInResult
+trait ExcludeDocs extends DocsInResult
 
 sealed trait MissingIdsInQuery
 trait MissingAllowed extends MissingIdsInQuery
@@ -35,7 +35,7 @@ trait MissingNotAllowed extends MissingIdsInQuery
 
 sealed trait DocType
 abstract class ForDocType[D: R, K: R, V: R] extends DocType
-abstract class AnyDocType extends DocType
+trait AnyDocType extends DocType
 
 case class GetManyDocumentsQueryBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery,
 BT <: DocType] private(
