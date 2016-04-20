@@ -81,6 +81,7 @@ BT <: DocType] private(
   def allowMissing(allow: Boolean): GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
     set[ID, MissingAllowed, BT](params, ids, view)
   }
+
   def withIds(ids: Seq[String]): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set[ID, AM, BT](params, ids, view)
   }
@@ -185,6 +186,8 @@ BT <: DocType] private(
     }
   }
 
+  @deprecated(
+    "Use byTypeUsingTemporaryView[D].build.query instead.", "0.7.1")
   def queryByTypeIncludeDocsWithTemporaryView[D: R](
       implicit tag: ClassTag[D]): Task[CouchDocs[(String, String), String, D]] = {
     log.warn(
@@ -195,10 +198,14 @@ BT <: DocType] private(
     queryByTypeIncludeDocs[(String, String), String, D](QueryUtils.tempTypeFilterView)
   }
 
+  @deprecated(
+    "Use includeDocs.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
     queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs[D].params)
   }
 
+  @deprecated(
+    "Use includeDocs.allowMissing.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocsAllowMissing[D: R](
       ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
     queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs[D].params)
