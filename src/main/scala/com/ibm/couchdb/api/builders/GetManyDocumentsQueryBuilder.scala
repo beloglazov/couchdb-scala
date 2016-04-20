@@ -232,55 +232,51 @@ BT <: DocType] private(
 }
 
 object GetManyDocumentsQueryBuilder {
+  type MDBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType] =
+  GetManyDocumentsQueryBuilder[ID, AM, BT]
 
-  trait BuildReady[T] {
-    def build: T
+  case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
+  (builder: MDBuilder[ID, AM, AnyDocType]) {
+    def build: QueryBasic[T] =
+      new QueryBasic[T](builder.client, builder.db, builder.params, builder.ids)
+  }
+
+  case class ByTypeBuilder[K: R, V: R, D: R](
+      builder: MDBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V, D]])
+      (implicit tag: ClassTag[D], kw: W[K]) {
+    def build: QueryByType[K, V, D] =
+      new QueryByType[K, V, D](builder.client, builder.db, builder.view, builder.typeMappings)
+  }
+
+  type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs, MissingNotAllowed]
+  type AllowMissingBuilder = Builder[CouchKeyValsIncludesMissing[String, CouchDocRev],
+      ExcludeDocs, MissingAllowed]
+  type IncludeDocsBuilder[D] = Builder[CouchDocs[String, CouchDocRev, D], IncludeDoc[D],
+      MissingNotAllowed]
+  type AllowMissingIncludeDocsBuilder[D] = Builder[CouchDocsIncludesMissing[String, CouchDocRev,
+      D], IncludeDoc[D], MissingAllowed]
+
+  implicit def buildBasic(builder: MDBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType]):
+  BasicBuilder = new BasicBuilder(builder)
+
+  implicit def buildAllowMissing(builder: MDBuilder[ExcludeDocs, MissingAllowed, AnyDocType]):
+  AllowMissingBuilder = new AllowMissingBuilder(builder)
+
+  implicit def buildIncludeDocs[D: R](
+      builder: MDBuilder[IncludeDoc[D], MissingNotAllowed, AnyDocType]): IncludeDocsBuilder[D] =
+    new IncludeDocsBuilder(builder)
+
+  implicit def buildIncludeDocsAllowMissing[D: R](
+      builder: MDBuilder[IncludeDoc[D], MissingAllowed, AnyDocType]):
+  AllowMissingIncludeDocsBuilder[D] = new AllowMissingIncludeDocsBuilder(builder)
+
+  implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
+      builder: MDBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V, D]])
+      (implicit tag: ClassTag[D], kw: W[K]): ByTypeBuilder[K, V, D] = {
+    new ByTypeBuilder[K, V, D](builder)
   }
 
   def apply(client: Client, db: String, typeMapping: TypeMapping):
-  GetManyDocumentsQueryBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType] =
-    new GetManyDocumentsQueryBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType](
-      client, db, typeMapping)
-
-  implicit def buildBasic(
-      builder: GetManyDocumentsQueryBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType]):
-  BuildReady[QueryBasic[CouchKeyVals[String, CouchDocRev]]] = {
-    new BuildReady[QueryBasic[CouchKeyVals[String, CouchDocRev]]] {
-      def build = new QueryBasic[CouchKeyVals[String, CouchDocRev]](
-        builder.client, builder.db, builder.params, builder.ids)
-    }
-  }
-
-  implicit def buildAllowMissing(
-      builder: GetManyDocumentsQueryBuilder[ExcludeDocs, MissingAllowed, AnyDocType]):
-  BuildReady[QueryBasic[CouchKeyValsIncludesMissing[String, CouchDocRev]]] = {
-    new BuildReady[QueryBasic[CouchKeyValsIncludesMissing[String, CouchDocRev]]] {
-      def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
-    }
-  }
-
-  implicit def buildIncludeDocs[D: R](
-      builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingNotAllowed, AnyDocType]):
-  BuildReady[QueryBasic[CouchDocs[String, CouchDocRev, D]]] = {
-    new BuildReady[QueryBasic[CouchDocs[String, CouchDocRev, D]]] {
-      def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
-    }
-  }
-
-  implicit def buildIncludeDocsAllowMissing[D: R](
-      builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingAllowed, AnyDocType]):
-  BuildReady[QueryBasic[CouchDocsIncludesMissing[String, CouchDocRev, D]]] =
-    new BuildReady[QueryBasic[CouchDocsIncludesMissing[String, CouchDocRev, D]]] {
-      def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
-    }
-
-  implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
-      builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V, D]])
-      (implicit tag: ClassTag[D], kw: W[K]):
-  BuildReady[QueryByType[K, V, D]] = {
-    new BuildReady[QueryByType[K, V, D]] {
-      def build = new QueryByType[K, V, D](
-        builder.client, builder.db, builder.view, builder.typeMappings)
-    }
-  }
+  MDBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType] =
+    new MDBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType](client, db, typeMapping)
 }
