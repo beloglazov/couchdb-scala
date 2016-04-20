@@ -37,10 +37,6 @@ case class QueryBasic[C: R](
   }
 }
 
-class QueryIncludeDocs[C: R, D: R](
-    client: Client, db: String, params: Map[String, String] = Map.empty,
-    ids: Seq[String] = Seq.empty) extends QueryBasic[C](client, db, params, ids)
-
 case class QueryByType[K, V, D: R](
     client: Client, db: String, typeFilterView: CouchView,
     typeMappings: TypeMapping, params: Map[String, String] = Map.empty,

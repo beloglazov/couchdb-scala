@@ -247,14 +247,12 @@ object GetManyDocumentsQueryBuilder {
   BuildReady[QueryBasic[CouchKeyVals[String, CouchDocRev]]] = {
     new BuildReady[QueryBasic[CouchKeyVals[String, CouchDocRev]]] {
       def build = new QueryBasic[CouchKeyVals[String, CouchDocRev]](
-        builder.client, builder.db,
-        builder.params, builder.ids)
+        builder.client, builder.db, builder.params, builder.ids)
     }
   }
 
   implicit def buildAllowMissing(
-      builder: GetManyDocumentsQueryBuilder[ExcludeDocs,
-          MissingAllowed, AnyDocType]):
+      builder: GetManyDocumentsQueryBuilder[ExcludeDocs, MissingAllowed, AnyDocType]):
   BuildReady[QueryBasic[CouchKeyValsIncludesMissing[String, CouchDocRev]]] = {
     new BuildReady[QueryBasic[CouchKeyValsIncludesMissing[String, CouchDocRev]]] {
       def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
@@ -263,17 +261,17 @@ object GetManyDocumentsQueryBuilder {
 
   implicit def buildIncludeDocs[D: R](
       builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingNotAllowed, AnyDocType]):
-  BuildReady[QueryIncludeDocs[CouchDocs[String, CouchDocRev, D], D]] = {
-    new BuildReady[QueryIncludeDocs[CouchDocs[String, CouchDocRev, D], D]] {
-      def build = new QueryIncludeDocs(builder.client, builder.db, builder.params, builder.ids)
+  BuildReady[QueryBasic[CouchDocs[String, CouchDocRev, D]]] = {
+    new BuildReady[QueryBasic[CouchDocs[String, CouchDocRev, D]]] {
+      def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
     }
   }
 
   implicit def buildIncludeDocsAllowMissing[D: R](
       builder: GetManyDocumentsQueryBuilder[IncludeDoc[D], MissingAllowed, AnyDocType]):
-  BuildReady[QueryIncludeDocs[CouchDocsIncludesMissing[String, CouchDocRev, D], D]] =
-    new BuildReady[QueryIncludeDocs[CouchDocsIncludesMissing[String, CouchDocRev, D], D]] {
-      def build = new QueryIncludeDocs(builder.client, builder.db, builder.params, builder.ids)
+  BuildReady[QueryBasic[CouchDocsIncludesMissing[String, CouchDocRev, D]]] =
+    new BuildReady[QueryBasic[CouchDocsIncludesMissing[String, CouchDocRev, D]]] {
+      def build = new QueryBasic(builder.client, builder.db, builder.params, builder.ids)
     }
 
   implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
