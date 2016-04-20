@@ -26,14 +26,13 @@ import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
 case class QueryBasic[C: R](
-    client: Client, db: String,
-    params: Map[String, String] = Map.empty,
+    client: Client, db: String, params: Map[String, String] = Map.empty,
     ids: Seq[String] = Seq.empty) {
   def query: Task[C] = {
     val url = s"/$db/_all_docs"
     ids match {
-      case Nil => QueryUtils.query[C](client, db, url, params)
-      case _ => QueryUtils.queryByIds[String, C](client, db, url, ids, params)
+      case Nil => QueryUtils.query[C](client, url, params)
+      case _ => QueryUtils.queryByIds[String, C](client, url, ids, params)
     }
   }
 }

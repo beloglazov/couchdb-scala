@@ -38,7 +38,6 @@ object QueryUtils {
 
   def query[Q: R](
       client: Client,
-      db: String,
       url: String,
       params: Map[String, String]): Task[Q] = {
     client.get[Q](url, Status.Ok, params.toSeq)
@@ -46,16 +45,14 @@ object QueryUtils {
 
   def queryByIds[K: W, Q: R](
       client: Client,
-      db: String,
       url: String,
       ids: Seq[K],
       params: Map[String, String]): Task[Q] = {
-    postQuery[Req.DocKeys[K], Q](client, db, url, Req.DocKeys(ids), params)
+    postQuery[Req.DocKeys[K], Q](client, url, Req.DocKeys(ids), params)
   }
 
   def postQuery[B: W, Q: R](
       client: Client,
-      db: String,
       url: String,
       body: B,
       params: Map[String, String]): Task[Q] = {
