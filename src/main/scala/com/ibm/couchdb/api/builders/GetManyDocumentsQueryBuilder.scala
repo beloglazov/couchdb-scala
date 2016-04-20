@@ -170,8 +170,8 @@ BT <: DocType] private(
 
   @deprecated(
     "Fails if different document types exist in the Db. " +
-    "Use `queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) " +
-    "instead", "0.7.0")
+    "Use byType[K, V, D](view: CouchView).build.query or " +
+    "byTypeUsingTemporaryView[D].build.query instead.", "0.7.0")
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
     queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs[D].params)
   }
