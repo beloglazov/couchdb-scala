@@ -27,12 +27,12 @@ import scalaz.concurrent.Task
 
 case class QueryBasic[C: R](
     client: Client, db: String, params: Map[String, String] = Map.empty,
-    ids: Seq[String] = Seq.empty) {
+    ids: Seq[String] = Seq.empty) extends QueryOps {
   def query: Task[C] = {
     val url = s"/$db/_all_docs"
     ids match {
-      case Nil => QueryUtils.query[C](client, url, params)
-      case _ => QueryUtils.queryByIds[String, C](client, url, ids, params)
+      case Nil => query[C](client, url, params)
+      case _ => queryByIds[String, C](client, url, ids, params)
     }
   }
 }

@@ -43,9 +43,19 @@ BT <: DocType] private(
     db: String,
     typeMappings: TypeMapping,
     params: Map[String, String] = Map.empty[String, String],
-    ids: Seq[String] = Seq.empty, view: CouchView = QueryUtils.tempTypeFilterView) {
+    ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) extends QueryOps {
 
   private val log = org.log4s.getLogger
+
+  lazy val tempTypeFilterView: CouchView = {
+    CouchView(
+      map =
+          """
+            |function(doc) {
+            | emit([doc.kind, doc._id], doc._id);
+            |}
+          """.stripMargin)
+  }
 
   def conflicts(
       conflicts: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
@@ -88,13 +98,13 @@ BT <: DocType] private(
 
   def byType[K: R, V: R, D: R](view: CouchView):
   GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, ForDocType[K, V, D]] = {
-    set[IncludeDoc[D], AM, ForDocType[K, V, D]](params, ids, view)
+    set[IncludeDoc[D], AM, ForDocType[K, V, D]](params, ids, Some(view))
   }
 
   def byTypeUsingTemporaryView[D: R]:
   GetManyDocumentsQueryBuilder[IncludeDoc[D], AM, ForDocType[(String, String), String, D]] = {
     set[IncludeDoc[D], AM, ForDocType[(String, String), String, D]](
-      params, ids, QueryUtils.tempTypeFilterView)
+      params, ids, Some(tempTypeFilterView))
   }
 
   def inclusiveEnd(
@@ -134,7 +144,7 @@ BT <: DocType] private(
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]
-  (_params: Map[String, String], _ids: Seq[String], _view: CouchView):
+  (_params: Map[String, String], _ids: Seq[String], _view: Option[CouchView]):
   GetManyDocumentsQueryBuilder[I, A, B] = {
     new GetManyDocumentsQueryBuilder[I, A, B](client, db, typeMappings, _params, _ids, _view)
   }
@@ -195,7 +205,7 @@ BT <: DocType] private(
       "It uses temporary views to perform type based filters and is inefficient. " +
       "Instead, create a permanent view for type based filtering and use the " +
       "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
-    queryByTypeIncludeDocs[(String, String), String, D](QueryUtils.tempTypeFilterView)
+    queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
   @deprecated(
@@ -220,18 +230,19 @@ BT <: DocType] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    QueryUtils.query[Q](client, s"/$db/_all_docs", ps)
+    query[Q](client, s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask
     else
-      QueryUtils.queryByIds[String, Q](client, s"/$db/_all_docs", ids, ps)
+      queryByIds[String, Q](client, s"/$db/_all_docs", ids, ps)
   }
 }
 
 object GetManyDocumentsQueryBuilder {
+
   type MDBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType] =
   GetManyDocumentsQueryBuilder[ID, AM, BT]
 
@@ -245,7 +256,11 @@ object GetManyDocumentsQueryBuilder {
       builder: MDBuilder[IncludeDoc[D], MissingNotAllowed, ForDocType[K, V, D]])
       (implicit tag: ClassTag[D], kw: W[K]) {
     def build: QueryByType[K, V, D] =
-      new QueryByType[K, V, D](builder.client, builder.db, builder.view, builder.typeMappings)
+      builder.view match {
+        case Some(view) => new QueryByType[K, V, D](
+          builder.client, builder.db, view,
+          builder.typeMappings)
+      }
   }
 
   type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs, MissingNotAllowed]

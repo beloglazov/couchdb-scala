@@ -24,17 +24,7 @@ import upickle.default._
 
 import scalaz.concurrent.Task
 
-object QueryUtils {
-
-  lazy val tempTypeFilterView: CouchView = {
-    CouchView(
-      map =
-          """
-            |function(doc) {
-            | emit([doc.kind, doc._id], doc._id);
-            |}
-          """.stripMargin)
-  }
+trait QueryOps {
 
   def query[Q: R](
       client: Client,

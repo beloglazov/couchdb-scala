@@ -30,7 +30,8 @@ case class ViewQueryBuilder[K, V] private(
     view: Option[String],
     temporaryView: Option[CouchView] = None,
     params: Map[String, String] = Map.empty[String, String])
-    (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]], dkw: W[Req.DocKeys[K]]) {
+    (implicit kr: R[K], kw: W[K], vr: R[V], cdr: R[CouchKeyVals[K, V]], dkw: W[Req.DocKeys[K]])
+    extends QueryOps {
 
   def conflicts(conflicts: Boolean = true): ViewQueryBuilder[K, V] = {
     set("conflicts", conflicts)
@@ -132,8 +133,8 @@ case class ViewQueryBuilder[K, V] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = temporaryView match {
-    case Some(t) => QueryUtils.postQuery[CouchView, Q](client, url, t, ps)
-    case None => QueryUtils.query[Q](client, url, ps)
+    case Some(t) => postQuery[CouchView, Q](client, url, t, ps)
+    case None => query[Q](client, url, ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[K], ps: Map[String, String]): Task[Q] = {
@@ -141,9 +142,9 @@ case class ViewQueryBuilder[K, V] private(
       Res.Error("not_found", "No IDs specified").toTask
     else {
       temporaryView match {
-        case Some(t) => QueryUtils.postQuery[Req.ViewWithKeys[K], Q](
+        case Some(t) => postQuery[Req.ViewWithKeys[K], Q](
           client, url, Req.ViewWithKeys(ids, t), ps)
-        case None => QueryUtils.queryByIds[K, Q](client, url, ids, ps)
+        case None => queryByIds[K, Q](client, url, ids, ps)
       }
     }
   }
