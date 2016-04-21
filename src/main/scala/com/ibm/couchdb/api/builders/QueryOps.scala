@@ -17,7 +17,7 @@
 package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.{CouchView, Req}
+import com.ibm.couchdb.Req
 import org.http4s.Status
 import upickle.default.Aliases.{R, W}
 import upickle.default._
@@ -26,23 +26,22 @@ import scalaz.concurrent.Task
 
 trait QueryOps {
 
+  def client: Client
+
   def query[Q: R](
-      client: Client,
       url: String,
       params: Map[String, String]): Task[Q] = {
     client.get[Q](url, Status.Ok, params.toSeq)
   }
 
   def queryByIds[K: W, Q: R](
-      client: Client,
       url: String,
       ids: Seq[K],
       params: Map[String, String]): Task[Q] = {
-    postQuery[Req.DocKeys[K], Q](client, url, Req.DocKeys(ids), params)
+    postQuery[Req.DocKeys[K], Q](url, Req.DocKeys(ids), params)
   }
 
   def postQuery[B: W, Q: R](
-      client: Client,
       url: String,
       body: B,
       params: Map[String, String]): Task[Q] = {

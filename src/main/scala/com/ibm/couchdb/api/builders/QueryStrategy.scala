@@ -31,8 +31,8 @@ case class QueryBasic[C: R](
   def query: Task[C] = {
     val url = s"/$db/_all_docs"
     ids match {
-      case Nil => query[C](client, url, params)
-      case _ => queryByIds[String, C](client, url, ids, params)
+      case Nil => query[C](url, params)
+      case _ => queryByIds[String, C](url, ids, params)
     }
   }
 }

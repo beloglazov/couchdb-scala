@@ -230,14 +230,14 @@ BT <: DocType] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    query[Q](client, s"/$db/_all_docs", ps)
+    query[Q](s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask
     else
-      queryByIds[String, Q](client, s"/$db/_all_docs", ids, ps)
+      queryByIds[String, Q](s"/$db/_all_docs", ids, ps)
   }
 }
 
@@ -258,8 +258,7 @@ object GetManyDocumentsQueryBuilder {
     def build: QueryByType[K, V, D] =
       builder.view match {
         case Some(view) => new QueryByType[K, V, D](
-          builder.client, builder.db, view,
-          builder.typeMappings)
+          builder.client, builder.db, view, builder.typeMappings)
       }
   }
 
