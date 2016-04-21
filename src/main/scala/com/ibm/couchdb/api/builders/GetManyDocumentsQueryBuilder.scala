@@ -148,7 +148,7 @@ BT <: DocType] private(
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]
   (_params: Map[String, String], _ids: Seq[String], _view: Option[CouchView]):
   GetManyDocumentsQueryBuilder[I, A, B] = {
-    new GetManyDocumentsQueryBuilder[I, A, B](client, db, typeMappings, _params, _ids, _view)
+    new GetManyDocumentsQueryBuilder(client, db, typeMappings, _params, _ids, _view)
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType](
@@ -251,7 +251,7 @@ object GetManyDocumentsQueryBuilder {
   case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
   (builder: MDBuilder[ID, AM, AnyDocType]) {
     def build: QueryBasic[T] =
-      new QueryBasic[T](builder.client, builder.db, builder.params, builder.ids)
+      QueryBasic(builder.client, builder.db, builder.params, builder.ids)
   }
 
   case class ByTypeBuilder[K: R, V: R, D: R](
@@ -259,7 +259,7 @@ object GetManyDocumentsQueryBuilder {
       (implicit tag: ClassTag[D], kw: W[K]) {
     def build: QueryByType[K, V, D] = {
       val view = builder.view.getOrElse(builder.tempTypeFilterView)
-      QueryByType[K, V, D](builder.client, builder.db, view, builder.typeMappings)
+      QueryByType(builder.client, builder.db, view, builder.typeMappings)
     }
   }
 
