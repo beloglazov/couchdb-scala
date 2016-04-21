@@ -291,10 +291,10 @@ object GetManyDocumentsQueryBuilder {
   implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
       builder: MDBuilder[IncludeDocs[D], MissingNotAllowed, ForDocType[K, V, D]])
       (implicit tag: ClassTag[D], kw: W[K]): ByTypeBuilder[K, V, D] = {
-    new ByTypeBuilder[K, V, D](builder)
+    ByTypeBuilder(builder)
   }
 
   def apply(client: Client, db: String, typeMapping: TypeMapping):
   MDBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType] =
-    new MDBuilder[ExcludeDocs, MissingNotAllowed, AnyDocType](client, db, typeMapping)
+    new MDBuilder(client, db, typeMapping)
 }
