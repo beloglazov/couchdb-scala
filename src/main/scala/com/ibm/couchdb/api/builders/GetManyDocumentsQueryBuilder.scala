@@ -257,18 +257,20 @@ object GetManyDocumentsQueryBuilder {
   case class ByTypeBuilder[K: R, V: R, D: R](
       builder: MDBuilder[IncludeDocs[D], MissingNotAllowed, ForDocType[K, V, D]])
       (implicit tag: ClassTag[D], kw: W[K]) {
-    def build: QueryByType[K, V, D] =
-      builder.view match {
-        case Some(view) => new QueryByType[K, V, D](
-          builder.client, builder.db, view, builder.typeMappings)
-      }
+    def build: QueryByType[K, V, D] = {
+      val view = builder.view.getOrElse(builder.tempTypeFilterView)
+      QueryByType[K, V, D](builder.client, builder.db, view, builder.typeMappings)
+    }
   }
 
   type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs, MissingNotAllowed]
+
   type AllowMissingBuilder = Builder[CouchKeyValsIncludesMissing[String, CouchDocRev],
       ExcludeDocs, MissingAllowed]
+
   type IncludeDocsBuilder[D] = Builder[CouchDocs[String, CouchDocRev, D], IncludeDocs[D],
       MissingNotAllowed]
+
   type AllowMissingIncludeDocsBuilder[D] = Builder[CouchDocsIncludesMissing[String, CouchDocRev,
       D], IncludeDocs[D], MissingAllowed]
 
