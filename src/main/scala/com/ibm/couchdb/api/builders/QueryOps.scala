@@ -24,9 +24,7 @@ import upickle.default._
 
 import scalaz.concurrent.Task
 
-trait QueryOps {
-
-  def client: Client
+case class QueryOps(client: Client) {
 
   def query[Q: R](
       url: String,

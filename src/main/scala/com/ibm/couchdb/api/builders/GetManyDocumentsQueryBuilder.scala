@@ -43,7 +43,9 @@ BT <: DocType] private(
     db: String,
     typeMappings: TypeMapping,
     params: Map[String, String] = Map.empty[String, String],
-    ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) extends QueryOps {
+    ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) {
+
+  val queryOps = QueryOps(client)
 
   private val log = org.log4s.getLogger
 
@@ -230,14 +232,14 @@ BT <: DocType] private(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    query[Q](s"/$db/_all_docs", ps)
+    queryOps.query[Q](s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask
     else
-      queryByIds[String, Q](s"/$db/_all_docs", ids, ps)
+      queryOps.queryByIds[String, Q](s"/$db/_all_docs", ids, ps)
   }
 }
 
