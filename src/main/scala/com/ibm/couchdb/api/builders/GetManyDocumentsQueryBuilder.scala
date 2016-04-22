@@ -61,29 +61,29 @@ BT <: DocType] private(
 
   def conflicts(
       conflicts: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("conflicts", conflicts)
+    set("conflicts", conflicts)
   }
 
   def descending(
       descending: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("descending", descending)
+    set("descending", descending)
   }
 
   def endKey[K: W](endKey: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("endkey", write(endKey))
+    set("endkey", write(endKey))
   }
 
   def endKeyDocId(
       endKeyDocId: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("endkey_docid", endKeyDocId)
+    set("endkey_docid", endKeyDocId)
   }
 
   def includeDocs[D: R]: GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, BT] = {
-    set[IncludeDocs[D], AM, BT]("include_docs", true)
+    set("include_docs", true)
   }
 
   def excludeDocs: GetManyDocumentsQueryBuilder[ExcludeDocs, AM, BT] = {
-    set[ExcludeDocs, AM, BT]("include_docs", false)
+    set("include_docs", false)
   }
 
   def allowMissing: GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
@@ -91,58 +91,57 @@ BT <: DocType] private(
   }
 
   def allowMissing(allow: Boolean): GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
-    set[ID, MissingAllowed, BT](params, ids, view)
+    set(params, ids, view)
   }
 
   def withIds(ids: Seq[String]): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT](params, ids, view)
+    set(params, ids, view)
   }
 
   def byType[K: R, V: R, D: R](view: CouchView):
   GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[K, V, D]] = {
-    set[IncludeDocs[D], AM, ForDocType[K, V, D]](params, ids, Some(view))
+    set(params, ids, Some(view))
   }
 
   def byTypeUsingTemporaryView[D: R]:
   GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[(String, String), String, D]] = {
-    set[IncludeDocs[D], AM, ForDocType[(String, String), String, D]](
-      params, ids, Some(tempTypeFilterView))
+    set(params, ids, Some(tempTypeFilterView))
   }
 
   def inclusiveEnd(
       inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("inclusive_end", inclusiveEnd)
+    set("inclusive_end", inclusiveEnd)
   }
 
   def key[K: W](key: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("key", write(key))
+    set("key", write(key))
   }
 
   def limit(limit: Int): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("limit", limit)
+    set("limit", limit)
   }
 
   def skip(skip: Int): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("skip", skip)
+    set("skip", skip)
   }
 
   def stale(stale: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("stale", stale)
+    set("stale", stale)
   }
 
   def startKey[K: W](
       startKey: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("startkey", write(startKey))
+    set("startkey", write(startKey))
   }
 
   def startKeyDocId(
       startKeyDocId: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("startkey_docid", startKeyDocId)
+    set("startkey_docid", startKeyDocId)
   }
 
   def updateSeq(
       updateSeq: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
-    set[ID, AM, BT]("update_seq", updateSeq)
+    set("update_seq", updateSeq)
   }
 
   private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]
