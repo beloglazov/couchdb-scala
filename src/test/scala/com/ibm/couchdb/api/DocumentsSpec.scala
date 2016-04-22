@@ -95,7 +95,9 @@ class DocumentsSpec extends CouchDbSpecification {
       val docsOldAPI = awaitRight(documents.getMany.query)
       verify(docsOldAPI, created)
       val docsNewAPI = awaitRight(documents.getMany.build.query)
+      val docsNewAPIWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
       verify(docsNewAPI, created)
+      verify(docsNewAPIWithExcludeDocs, created)
     }
 
     "Get multiple documents by IDs" >> {
@@ -111,8 +113,12 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = Seq(fixAlice, fixCarl, fixBob).map(x => awaitRight(documents.create(x)))
       val expected = created.take(2)
       verify(awaitRight(documents.getMany.query(expected.map(_.id))), created, expected)
-      verify(awaitRight(documents.getMany.withIds(expected.map(_.id)).build.query), created,
-        expected)
+      verify(
+        awaitRight(documents.getMany.withIds(expected.map(_.id)).build.query), created, expected)
+      verify(
+        awaitRight(
+          documents.getMany.disAllowMissing.excludeDocs.withIds(expected.map(_.id)).build
+              .query), created, expected)
     }
 
     "Get multiple documents by IDs with some missing" >> {
@@ -135,7 +141,10 @@ class DocumentsSpec extends CouchDbSpecification {
       verify(
         awaitRight(documents.getMany.allowMissing.withIds(existingIds ++ missingIds).build.query),
         missingIds, existingIds)
-    }
+      verify(
+        awaitRight(documents.getMany.disAllowMissing.allowMissing.
+            withIds(existingIds ++ missingIds).build.query), missingIds, existingIds)
+     }
 
     "Get all documents and include the doc data" >> {
       def verify(
@@ -154,7 +163,9 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = expected.map(x => awaitRight(documents.create(x)))
       verify(awaitRight(documents.getMany.queryIncludeDocs[FixPerson]), created, expected)
       verify(awaitRight(documents.getMany.includeDocs[FixPerson].build.query), created, expected)
-    }
+      verify(awaitRight(documents.getMany.excludeDocs.includeDocs[FixPerson].build.query), created,
+        expected)
+     }
 
     "Get all documents by type and include the doc data" >> {
       def verify(
@@ -226,6 +237,10 @@ class DocumentsSpec extends CouchDbSpecification {
       verify(
         awaitRight(documents.getMany.withIds(created.map(_.id)).includeDocs[FixPerson].build.query),
         created, expected)
+      verify(
+        awaitRight(
+          documents.getMany.disAllowMissing.withIds(created.map(_.id)).includeDocs[FixPerson].
+              build.query), created, expected)
     }
 
     "Get multiple documents by IDs with some missing and include the doc data" >> {
