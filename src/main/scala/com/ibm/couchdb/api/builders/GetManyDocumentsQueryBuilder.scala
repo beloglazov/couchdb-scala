@@ -25,11 +25,27 @@ import upickle.default.write
 import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
-case class GetManyDocumentsQueryBuilder(
+sealed trait DocsInResult
+abstract class IncludeDocs[D: R] extends DocsInResult
+trait ExcludeDocs extends DocsInResult
+
+sealed trait MissingIdsInQuery
+trait MissingAllowed extends MissingIdsInQuery
+trait MissingDisallowed extends MissingIdsInQuery
+
+sealed trait DocType
+abstract class ForDocType[D: R, K: R, V: R] extends DocType
+trait AnyDocType extends DocType
+
+case class GetManyDocumentsQueryBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery,
+BT <: DocType] private(
     client: Client,
     db: String,
     typeMappings: TypeMapping,
-    params: Map[String, String] = Map.empty[String, String]) extends QueryStrategy {
+    params: Map[String, String] = Map.empty[String, String],
+    ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) {
+
+  val queryOps = QueryOps(client)
 
   private val log = org.log4s.getLogger
 
@@ -43,74 +59,126 @@ case class GetManyDocumentsQueryBuilder(
           """.stripMargin)
   }
 
-  def conflicts(conflicts: Boolean = true): GetManyDocumentsQueryBuilder = {
+  def conflicts(
+      conflicts: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("conflicts", conflicts)
   }
 
-  def descending(descending: Boolean = true): GetManyDocumentsQueryBuilder = {
+  def descending(
+      descending: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("descending", descending)
   }
 
-  def endKey[K: W](endKey: K): GetManyDocumentsQueryBuilder = {
+  def endKey[K: W](endKey: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("endkey", write(endKey))
   }
 
-  def endKeyDocId(endKeyDocId: String): GetManyDocumentsQueryBuilder = {
+  def endKeyDocId(
+      endKeyDocId: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("endkey_docid", endKeyDocId)
   }
 
-  private def includeDocs(includeDocs: Boolean = true): GetManyDocumentsQueryBuilder = {
-    set("include_docs", includeDocs)
+  def includeDocs[D: R]: GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, BT] = {
+    set("include_docs", true)
   }
 
-  def inclusiveEnd(inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder = {
+  def excludeDocs: GetManyDocumentsQueryBuilder[ExcludeDocs, AM, BT] = {
+    set("include_docs", false)
+  }
+
+  def allowMissing: GetManyDocumentsQueryBuilder[ID, MissingAllowed, BT] = {
+    setType()
+  }
+
+  def disallowMissing: GetManyDocumentsQueryBuilder[ID, MissingDisallowed, BT] = {
+    setType()
+  }
+
+  def withIds(ids: Seq[String]): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
+    set(params, ids, view)
+  }
+
+  def byType[K: R, V: R, D: R](view: CouchView):
+  GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[K, V, D]] = {
+    set(params, ids, Some(view))
+  }
+
+  def byTypeUsingTemporaryView[D: R]:
+  GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[(String, String), String, D]] = {
+    set(params, ids, Some(tempTypeFilterView))
+  }
+
+  def inclusiveEnd(
+      inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("inclusive_end", inclusiveEnd)
   }
 
-  def key[K: W](key: K): GetManyDocumentsQueryBuilder = {
+  def key[K: W](key: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("key", write(key))
   }
 
-  def limit(limit: Int): GetManyDocumentsQueryBuilder = {
+  def limit(limit: Int): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("limit", limit)
   }
 
-  def skip(skip: Int): GetManyDocumentsQueryBuilder = {
+  def skip(skip: Int): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("skip", skip)
   }
 
-  def stale(stale: String): GetManyDocumentsQueryBuilder = {
+  def stale(stale: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("stale", stale)
   }
 
-  def startKey[K: W](startKey: K): GetManyDocumentsQueryBuilder = {
+  def startKey[K: W](
+      startKey: K): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("startkey", write(startKey))
   }
 
-  def startKeyDocId(startKeyDocId: String): GetManyDocumentsQueryBuilder = {
+  def startKeyDocId(
+      startKeyDocId: String): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("startkey_docid", startKeyDocId)
   }
 
-  def updateSeq(updateSeq: Boolean = true): GetManyDocumentsQueryBuilder = {
+  def updateSeq(
+      updateSeq: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("update_seq", updateSeq)
   }
 
-  private def set(key: String, value: String): GetManyDocumentsQueryBuilder = {
-    copy(params = params.updated(key, value))
+  private def setType[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]():
+  GetManyDocumentsQueryBuilder[I, A, B] = {
+    set[I, A, B](params, ids, view)
   }
 
-  private def set(key: String, value: Any): GetManyDocumentsQueryBuilder = {
+  private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType]
+  (_params: Map[String, String], _ids: Seq[String], _view: Option[CouchView]):
+  GetManyDocumentsQueryBuilder[I, A, B] = {
+    new GetManyDocumentsQueryBuilder(client, db, typeMappings, _params, _ids, _view)
+  }
+
+  private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType](
+      key: String, value: String): GetManyDocumentsQueryBuilder[I, A, B] = {
+    set(params.updated(key, value), ids, view)
+  }
+
+  private def set[I <: DocsInResult, A <: MissingIdsInQuery, B <: DocType](
+      key: String, value: Any): GetManyDocumentsQueryBuilder[I, A, B] = {
     set(key, value.toString)
   }
 
+  @deprecated(
+    "Use build.query instead.", "0.7.1")
   def query: Task[CouchKeyVals[String, CouchDocRev]] = {
     queryWithoutIds[CouchKeyVals[String, CouchDocRev]](params)
   }
 
+  @deprecated(
+    "Use withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def query(ids: Seq[String]): Task[CouchKeyVals[String, CouchDocRev]] = {
     queryByIds[CouchKeyVals[String, CouchDocRev]](ids, params)
   }
 
+  @deprecated(
+    "Use allowMissing.withIds(ks: Seq[String]).build.query instead.", "0.7.1")
   def queryAllowMissing(
       ids: Seq[String]): Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
     queryByIds[CouchKeyValsIncludesMissing[String, CouchDocRev]](ids, params)
@@ -118,12 +186,14 @@ case class GetManyDocumentsQueryBuilder(
 
   @deprecated(
     "Fails if different document types exist in the Db. " +
-    "Use `queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) " +
-    "instead", "0.7.1")
+    "Use byType[K, V, D](view: CouchView).build.query or " +
+    "byTypeUsingTemporaryView[D].build.query instead.", "0.7.0")
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
-    queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs().params)
+    queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs[D].params)
   }
 
+  @deprecated(
+    "Use byType[K, V, D](view: CouchView).build.query instead.", "0.7.1")
   def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
       (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
     typeMappings.forType(tag.runtimeClass) match {
@@ -132,6 +202,8 @@ case class GetManyDocumentsQueryBuilder(
     }
   }
 
+  @deprecated(
+    "Use byTypeUsingTemporaryView[D].build.query instead.", "0.7.1")
   def queryByTypeIncludeDocsWithTemporaryView[D: R](
       implicit tag: ClassTag[D]): Task[CouchDocs[(String, String), String, D]] = {
     log.warn(
@@ -142,13 +214,17 @@ case class GetManyDocumentsQueryBuilder(
     queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
   }
 
+  @deprecated(
+    "Use includeDocs.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
-    queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs().params)
+    queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs[D].params)
   }
 
+  @deprecated(
+    "Use includeDocs.allowMissing.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocsAllowMissing[D: R](
       ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
-    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs().params)
+    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs[D].params)
   }
 
   private def queryByType[K, V, D: R](view: CouchView, kind: String)
@@ -160,13 +236,69 @@ case class GetManyDocumentsQueryBuilder(
   }
 
   private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    postQuery[Q](client, db, s"/$db/_all_docs", ps)
+    queryOps.query[Q](s"/$db/_all_docs", ps)
   }
 
   private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
     if (ids.isEmpty)
       Res.Error("not_found", "No IDs specified").toTask
     else
-      queryByIds[String, Q](client, db, s"/$db/_all_docs", ids, ps)
+      queryOps.queryByIds[String, Q](s"/$db/_all_docs", ids, ps)
   }
+}
+
+object GetManyDocumentsQueryBuilder {
+
+  type MDBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType] =
+  GetManyDocumentsQueryBuilder[ID, AM, BT]
+
+  case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
+  (builder: MDBuilder[ID, AM, AnyDocType]) {
+    def build: QueryBasic[T] =
+      QueryBasic(builder.client, builder.db, builder.params, builder.ids)
+  }
+
+  case class ByTypeBuilder[K: R, V: R, D: R](
+      builder: MDBuilder[IncludeDocs[D], MissingDisallowed, ForDocType[K, V, D]])
+      (implicit tag: ClassTag[D], kw: W[K]) {
+    def build: QueryByType[K, V, D] = {
+      val view = builder.view.getOrElse(builder.tempTypeFilterView)
+      QueryByType(builder.client, builder.db, view, builder.typeMappings)
+    }
+  }
+
+  type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs, MissingDisallowed]
+
+  type AllowMissingBuilder = Builder[CouchKeyValsIncludesMissing[String, CouchDocRev],
+      ExcludeDocs, MissingAllowed]
+
+  type IncludeDocsBuilder[D] = Builder[CouchDocs[String, CouchDocRev, D], IncludeDocs[D],
+      MissingDisallowed]
+
+  type AllowMissingIncludeDocsBuilder[D] = Builder[CouchDocsIncludesMissing[String, CouchDocRev,
+      D], IncludeDocs[D], MissingAllowed]
+
+  implicit def buildBasic(builder: MDBuilder[ExcludeDocs, MissingDisallowed, AnyDocType]):
+  BasicBuilder = new BasicBuilder(builder)
+
+  implicit def buildAllowMissing(builder: MDBuilder[ExcludeDocs, MissingAllowed, AnyDocType]):
+  AllowMissingBuilder = new AllowMissingBuilder(builder)
+
+  implicit def buildIncludeDocs[D: R](
+      builder: MDBuilder[IncludeDocs[D], MissingDisallowed, AnyDocType]): IncludeDocsBuilder[D] =
+    new IncludeDocsBuilder(builder)
+
+  implicit def buildIncludeDocsAllowMissing[D: R](
+      builder: MDBuilder[IncludeDocs[D], MissingAllowed, AnyDocType]):
+  AllowMissingIncludeDocsBuilder[D] = new AllowMissingIncludeDocsBuilder(builder)
+
+  implicit def buildByTypeIncludeDocs[K: R, V: R, D: R](
+      builder: MDBuilder[IncludeDocs[D], MissingDisallowed, ForDocType[K, V, D]])
+      (implicit tag: ClassTag[D], kw: W[K]): ByTypeBuilder[K, V, D] = {
+    ByTypeBuilder(builder)
+  }
+
+  def apply(client: Client, db: String, typeMapping: TypeMapping):
+  MDBuilder[ExcludeDocs, MissingDisallowed, AnyDocType] =
+    new MDBuilder(client, db, typeMapping)
 }

@@ -16,9 +16,11 @@
 
 package com.ibm.couchdb.api
 
+import com.ibm.couchdb.Res.DocOk
+import com.ibm.couchdb._
 import com.ibm.couchdb.spec.{CouchDbSpecification, SpecConfig}
-import com.ibm.couchdb.{CouchAttachment, CouchDoc}
 import org.http4s.Status
+import org.specs2.matcher.MatchResult
 
 class DocumentsSpec extends CouchDbSpecification {
 
@@ -63,7 +65,7 @@ class DocumentsSpec extends CouchDbSpecification {
       clear()
       val res = awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       res must haveLength(2)
-      checkDocOk(res(0))
+      checkDocOk(res.head)
       checkDocOk(res(1))
     }
 
@@ -80,118 +82,192 @@ class DocumentsSpec extends CouchDbSpecification {
     }
 
     "Get all documents" >> {
+      def verify(docs: CouchKeyVals[String, CouchDocRev], expected: Seq[Res.DocOk]):
+      MatchResult[Seq[String]] = {
+        docs.offset mustEqual 0
+        docs.total_rows must beEqualTo(expected.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.id) must containTheSameElementsAs(expected.map(_.id))
+      }
       clear()
-      val created1 = awaitRight(documents.create(fixAlice))
-      val created2 = awaitRight(documents.create(fixAlice))
-      val docs = awaitRight(documents.getMany.query)
-      docs.offset mustEqual 0
-      docs.total_rows must beGreaterThanOrEqualTo(2)
-      docs.rows must haveLength(2)
-      docs.rows.map(_.id) must contain(allOf(created1.id, created2.id))
+      val created = Seq(
+        awaitRight(documents.create(fixAlice)), awaitRight(documents.create(fixAlice)))
+      val docsOldAPI = awaitRight(documents.getMany.query)
+      verify(docsOldAPI, created)
+      val docsNewAPI = awaitRight(documents.getMany.build.query)
+      val docsNewAPIWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
+      verify(docsNewAPI, created)
+      verify(docsNewAPIWithExcludeDocs, created)
     }
 
     "Get multiple documents by IDs" >> {
+      def verify(
+          docs: CouchKeyVals[String, CouchDocRev], created: Seq[Res.DocOk],
+          expected: Seq[Res.DocOk]): MatchResult[Any] = {
+        docs.offset mustEqual 0
+        docs.total_rows must beEqualTo(created.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.id) mustEqual expected.map(_.id)
+      }
       clear()
-      val createdAlice = awaitRight(documents.create(fixAlice))
-      awaitRight(documents.create(fixBob))
-      val createdCarl = awaitRight(documents.create(fixCarl))
-      val docs = awaitRight(documents.getMany.query(Seq(createdAlice.id, createdCarl.id)))
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(2)
-      docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdCarl.id)
+      val created = Seq(fixAlice, fixCarl, fixBob).map(x => awaitRight(documents.create(x)))
+      val expected = created.take(2)
+      verify(awaitRight(documents.getMany.query(expected.map(_.id))), created, expected)
+      verify(
+        awaitRight(documents.getMany.withIds(expected.map(_.id)).build.query), created, expected)
+      verify(
+        awaitRight(
+          documents.getMany.disallowMissing.excludeDocs.withIds(expected.map(_.id)).build
+              .query), created, expected)
     }
 
     "Get multiple documents by IDs with some missing" >> {
+      def verify(
+          docs: CouchKeyValsIncludesMissing[String, CouchDocRev], missing: Seq[String],
+          existing: Seq[String]): MatchResult[Any] = {
+        docs.offset mustEqual 0
+        docs.rows must haveLength(missing.length + existing.length)
+        docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existing
+        docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missing
+      }
       clear()
       val fixPersons = Seq(fixAlice, fixBob, fixCarl)
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docs = awaitRight(documents.getMany.queryAllowMissing(existingIds ++ missingIds))
-      docs.offset mustEqual 0
-      docs.rows must haveLength(missingIds.length + existingIds.length)
-      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
-      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
-    }
+      verify(
+        awaitRight(documents.getMany.queryAllowMissing(existingIds ++ missingIds)), missingIds,
+        existingIds)
+      verify(
+        awaitRight(documents.getMany.allowMissing.withIds(existingIds ++ missingIds).build.query),
+        missingIds, existingIds)
+      verify(
+        awaitRight(documents.getMany.disallowMissing.allowMissing.
+            withIds(existingIds ++ missingIds).build.query), missingIds, existingIds)
+     }
 
     "Get all documents and include the doc data" >> {
+      def verify(
+          docs: CouchDocs[String, CouchDocRev, FixPerson],
+          created: Seq[Res.DocOk], expected: Seq[FixPerson]): MatchResult[Any] = {
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual created.size
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.id) mustEqual created.map(_.id)
+        docs.rows.map(_.doc.doc) mustEqual expected
+        docs.getDocs.map(_.doc) mustEqual expected
+        docs.getDocsData mustEqual expected
+      }
       clear()
-      val created1 = awaitRight(documents.create(fixAlice))
-      val created2 = awaitRight(documents.create(fixAlice))
-      val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson])
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 2
-      docs.rows must haveLength(2)
-      docs.rows.map(_.id) mustEqual Seq(created1.id, created2.id)
-      docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixAlice)
-      docs.getDocs.map(_.doc) mustEqual Seq(fixAlice, fixAlice)
-      docs.getDocsData mustEqual Seq(fixAlice, fixAlice)
-    }
+      val expected = Seq(fixAlice, fixBob)
+      val created = expected.map(x => awaitRight(documents.create(x)))
+      verify(awaitRight(documents.getMany.queryIncludeDocs[FixPerson]), created, expected)
+      verify(awaitRight(documents.getMany.includeDocs[FixPerson].build.query), created, expected)
+      verify(awaitRight(documents.getMany.excludeDocs.includeDocs[FixPerson].build.query), created,
+        expected)
+     }
 
     "Get all documents by type and include the doc data" >> {
+      def verify(
+          docs: CouchDocs[(String, String), String, FixXPerson],
+          created: Seq[DocOk], expected: Seq[FixXPerson]): MatchResult[Any] = {
+        docs.total_rows must beGreaterThanOrEqualTo(created.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.value) mustEqual created.map(_.id)
+        docs.rows.map(_.doc.doc) mustEqual expected
+        docs.getDocs.map(_.doc) mustEqual expected
+        docs.getDocsData mustEqual expected
+      }
       clear()
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
-      val fixXMen = Seq(fixProfessorX, fixMagneto)
-      val createdXMen = awaitRight(documents.createMany(fixXMen))
-      val docs = awaitRight(documents.getMany.queryByTypeIncludeDocsWithTemporaryView[FixXPerson])
-      docs.total_rows mustEqual 4
-      docs.rows must haveLength(2)
-      docs.rows.map(_.value) mustEqual createdXMen.map(_.id)
-      docs.rows.map(_.doc.doc) mustEqual fixXMen
-      docs.getDocs.map(_.doc) mustEqual fixXMen
-      docs.getDocsData mustEqual fixXMen
+      val expected = Seq(fixProfessorX, fixMagneto)
+      val createdXMenOnly = awaitRight(documents.createMany(expected))
+      verify(
+        awaitRight(documents.getMany.queryByTypeIncludeDocsWithTemporaryView[FixXPerson]),
+        createdXMenOnly, expected)
+      verify(
+        awaitRight(documents.getMany.byTypeUsingTemporaryView[FixXPerson].build.query),
+        createdXMenOnly, expected)
     }
 
     "Get all documents by type and include the doc data, given a permanent type filter view" >> {
+      def verify(
+          docs: CouchDocs[(String, String), String, FixXPerson], created: Seq[DocOk],
+          expected: Seq[FixXPerson]): MatchResult[Any] = {
+        docs.total_rows must beGreaterThan(created.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.value) mustEqual created.map(_.id)
+        docs.rows.map(_.doc.doc) mustEqual expected
+        docs.getDocs.map(_.doc) mustEqual expected
+        docs.getDocsData mustEqual expected
+      }
       clear()
       val design = new Design(client, db)
       awaitRight(design.create(fixDesign))
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
-      val fixXMen = Seq(fixProfessorX, fixMagneto)
-      val createdXMen = awaitRight(documents.createMany(fixXMen))
-      val docs = awaitRight(
+      val expected = Seq(fixProfessorX, fixMagneto)
+      val created = awaitRight(documents.createMany(expected))
+      val docsOldAPI = awaitRight(
         documents.getMany.queryByTypeIncludeDocs[(String, String), String, FixXPerson](
           FixViews.typeFilterView))
-      docs.total_rows mustEqual 4
-      docs.rows must haveLength(2)
-      docs.rows.map(_.value) mustEqual createdXMen.map(_.id)
-      docs.rows.map(_.doc.doc) mustEqual fixXMen
-      docs.getDocs.map(_.doc) mustEqual fixXMen
-      docs.getDocsData mustEqual fixXMen
-
+      verify(docsOldAPI, created, expected)
+      val docsNewAPI = awaitRight(
+        documents.getMany.byType[(String, String), String, FixXPerson]
+            (FixViews.typeFilterView).build.query)
+      verify(docsNewAPI, created, expected)
     }
 
     "Get multiple documents by IDs and include the doc data" >> {
+      def verify(
+          docs: CouchDocs[String, CouchDocRev, FixPerson], created: Seq[Res.DocOk],
+          expected: Seq[FixPerson]): MatchResult[Any] = {
+        docs.offset mustEqual 0
+        docs.total_rows must beGreaterThanOrEqualTo(3)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.id) mustEqual created.map(_.id)
+        docs.rows.map(_.doc.doc) mustEqual expected
+        docs.getDocs.map(_.doc) mustEqual expected
+        docs.getDocsData mustEqual expected
+      }
       clear()
-      val createdAlice = awaitRight(documents.create(fixAlice))
       awaitRight(documents.create(fixBob))
-      val createdCarl = awaitRight(documents.create(fixCarl))
-      val docs = awaitRight(documents.getMany[FixPerson](Seq(createdAlice.id, createdCarl.id)))
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(2)
-      docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdCarl.id)
-      docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixCarl)
-      docs.getDocs.map(_.doc) mustEqual Seq(fixAlice, fixCarl)
-      docs.getDocsData mustEqual Seq(fixAlice, fixCarl)
+      val expected = Seq(fixAlice, fixCarl)
+      val created: Seq[Res.DocOk] = expected.map(x => awaitRight(documents.create(x)))
+      verify(awaitRight(documents.getMany[FixPerson](created.map(_.id))), created, expected)
+      verify(
+        awaitRight(documents.getMany.withIds(created.map(_.id)).includeDocs[FixPerson].build.query),
+        created, expected)
+      verify(
+        awaitRight(
+          documents.getMany.disallowMissing.withIds(created.map(_.id)).includeDocs[FixPerson].
+              build.query), created, expected)
     }
 
     "Get multiple documents by IDs with some missing and include the doc data" >> {
+      def verify(
+          docs: CouchDocsIncludesMissing[String, CouchDocRev, FixPerson],
+          missing: Seq[String], existing: Seq[String],
+          expected: Seq[FixPerson]): MatchResult[Any] = {
+        docs.offset mustEqual 0
+        docs.rows must haveLength(missing.length + existing.length)
+        docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existing
+        docs.rows.flatMap(_.toOption).map(_.doc.doc) mustEqual expected
+        docs.getDocs.flatMap(_.toOption).map(_.doc) mustEqual expected
+        docs.getDocsData mustEqual expected
+        docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missing
+      }
       clear()
       val fixPersons = Seq(fixAlice, fixBob, fixCarl)
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docs = awaitRight(
+      val docsOldAPI = awaitRight(
         documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
-      docs.offset mustEqual 0
-      docs.rows must haveLength(missingIds.length + existingIds.length)
-      docs.rows.flatMap(_.toOption).map(_.id).toList mustEqual existingIds
-      docs.rows.flatMap(_.toOption).map(_.doc.doc) mustEqual fixPersons
-      docs.getDocs.flatMap(_.toOption).map(_.doc) mustEqual fixPersons
-      docs.getDocsData mustEqual fixPersons
-      docs.rows.flatMap(_.swap.toOption).map(_.key).toList mustEqual missingIds
+      verify(docsOldAPI, missingIds, existingIds, fixPersons)
+      val docsNewAPI = awaitRight(
+        documents.getMany.includeDocs[FixPerson].allowMissing.withIds(existingIds ++ missingIds).
+            build.query)
+      verify(docsNewAPI, missingIds, existingIds, fixPersons)
     }
 
     "Get a document containing unicode values" >> {
@@ -248,7 +324,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val aliceRes = awaitRight(documents.get[FixPerson](created.id))
       awaitDocOk(documents.attach(aliceRes, fixAttachmentName, fixAttachmentData))
       val url = s"http://${SpecConfig.couchDbHost}:${SpecConfig.couchDbPort}" +
-                s"/${db}/${aliceRes._id}/${fixAttachmentName}"
+                s"/$db/${aliceRes._id}/$fixAttachmentName"
       awaitRight(documents.getAttachmentUrl(aliceRes, fixAttachmentName)) mustEqual url
       awaitRight(documents.getAttachment(aliceRes, fixAttachmentName)) mustEqual fixAttachmentData
     }
