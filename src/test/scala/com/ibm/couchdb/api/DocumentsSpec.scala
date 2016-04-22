@@ -117,7 +117,7 @@ class DocumentsSpec extends CouchDbSpecification {
         awaitRight(documents.getMany.withIds(expected.map(_.id)).build.query), created, expected)
       verify(
         awaitRight(
-          documents.getMany.disAllowMissing.excludeDocs.withIds(expected.map(_.id)).build
+          documents.getMany.disallowMissing.excludeDocs.withIds(expected.map(_.id)).build
               .query), created, expected)
     }
 
@@ -142,7 +142,7 @@ class DocumentsSpec extends CouchDbSpecification {
         awaitRight(documents.getMany.allowMissing.withIds(existingIds ++ missingIds).build.query),
         missingIds, existingIds)
       verify(
-        awaitRight(documents.getMany.disAllowMissing.allowMissing.
+        awaitRight(documents.getMany.disallowMissing.allowMissing.
             withIds(existingIds ++ missingIds).build.query), missingIds, existingIds)
      }
 
@@ -239,7 +239,7 @@ class DocumentsSpec extends CouchDbSpecification {
         created, expected)
       verify(
         awaitRight(
-          documents.getMany.disAllowMissing.withIds(created.map(_.id)).includeDocs[FixPerson].
+          documents.getMany.disallowMissing.withIds(created.map(_.id)).includeDocs[FixPerson].
               build.query), created, expected)
     }
 
