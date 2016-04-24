@@ -22,7 +22,7 @@ It's based on these awesome libraries:
 Add the following dependency to your SBT config:
 
 ```Scala
-libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.7.0"
+libraryDependencies += "com.ibm" %% "couchdb-scala" % "0.7.1"
 ```
 
 
