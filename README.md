@@ -370,7 +370,7 @@ of `CouchDoc[Person]`. This object will contain an instance of `Person` in the
 You can also retrieve a set of documents by IDs using:
 
 ```Scala
-db.docs.getMany.queryIncludeDocs[Person](Seq("id1", "id1"))
+db.docs.getMany.includeDocs[Person].withIds(Seq("id1", "id1")).build.query
 ```
 
 A call to `getMany` returns an instance of `GetManyDocumentsQueryBuilder`, which
@@ -384,7 +384,7 @@ limit the number of documents to the maximum of 10 and return them in the
 descending order:
 
 ```Scala
-db.docs.getMany.limit(10).descending.queryIncludeDocs[Person](Seq("id1", "id2"))
+db.docs.getMany.limit(10).descending.includeDocs[Person].withIds(Seq("id1", "id2")).build.query
 ```
 
 This creates an instance of `Task[CouchDocs[String, CouchDocRev, Person]]`,
@@ -394,22 +394,25 @@ the query construction process, which also sets the `include_docs` option to
 include the full content of the documents mapped to `Person` objects on arrival.
 
 It's also possible to execute a query without including the document content
-using `db.docs.getMany.query`, which is equivalent to keeping the `include_docs`
+using `db.docs.getMany.build.query`, which is equivalent to keeping the `include_docs`
 set to its default `false` value. This query will only return metadata on the
 matching documents. In this case, we don't need to specify the type parameter as
 no mapping is required since the document content is not retrieved.
 
 To retrieve all documents in the database of a given type without specifying ids, you could use either:
 ```Scala
-val allPeople1 = db.docs.getMany.queryByTypeIncludeDocsWithTemporaryView[Person]
-val allPeople2 = db.docs.getMany.queryByTypeIncludeDocs[Person](yourOwnPermTypeFilterView)
+val allPeople1 = db.docs.getMany.byTypeUsingTemporaryView[Person].build.query
+val allPeople2 = db.docs.getMany.byType[String, String, Person](yourPermTypeFilterView).build
+.query
 ```
 
-The first approach, `queryByTypeIncludeDocsWithTemporaryView[T]`, uses a temporary view
+The first approach, `byTypeUsingTemporaryView[T]`, uses a temporary view
 under the hood for type based filtering. While convenient for development purposes, it is inefficient
-and should be not be used in production. On the other hand, `queryByTypeIncludeDocs[T](CouchView)`,
+and should be not be used in production. On the other hand, `byType[K, V, T](CouchView)`,
 uses a permanent view passed as argument for type based filtering. Because it uses permanent views
 it is more efficient and is thus the recommended method for querying multiple documents by type.
+Note the first two type parameters `K` and `V` represent the key and value types of the permanent
+view respectively.
 
 There is a similar query builder for retrieving single documents
 `GetDocumentQueryBuilder` that makes GET requests to the
@@ -440,7 +443,7 @@ of the key and value emitted by the view. In the case of `age-view` and `total-a
 We can now use the `ageView` query builder to retrieve all the documents from the view:
 
 ```Scala
-ageView.query
+ageView.build.query
 ```
 
 This method call returns an instance of `Task[CouchKeyVals[String, Int]]`.
@@ -454,7 +457,7 @@ Similarly, to query the total age of Persons in the document using the
 `totalAgeView` builder we can do:
 
 ```Scala
-totalAgeView.queryWithReduce[Int]
+totalAgeView.reduce[Int].build.query
 ```
 
 The type parameter `T` specified to `queryWithReduce[T]`, in this case `Int`,
@@ -464,7 +467,7 @@ We can also make more complex queries. Let's say we want to get 10 people
 starting from the name Bob and include the document content:
 
 ```Scala
-ageView.startKey("Bob").limit(10).queryIncludeDocs[Person]
+ageView.startKey("Bob").limit(10).includeDocs[Person].build.query
 ```
 
 This returns an instance of `Task[CouchDocs[String, Int, Person]]`, which once
@@ -479,7 +482,7 @@ specified keys. For example, we can use that to get only documents of Alice and
 Carl:
 
 ```Scala
-ageView.query(Seq("Alice", "Carl"))
+ageView.build.query(Seq("Alice", "Carl"))
 ```
 
 This return an instance of `Task[CouchKeyVals[String, Int]]`. For other usage
@@ -545,7 +548,7 @@ object Basic extends App {
     // Insert documents into the database
     _ <- db.docs.createMany(Seq(alice, bob, carl))
     // Retrieve all documents from the database and unserialize to Person
-    docs <- db.docs.getMany.queryIncludeDocs[Person]
+    docs <- db.docs.getMany.includeDocs[Person].build.query
   } yield docs.getDocsData
 
   // Execute the actions and process the result
