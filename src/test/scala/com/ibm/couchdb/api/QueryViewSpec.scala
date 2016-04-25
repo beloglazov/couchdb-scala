@@ -17,6 +17,10 @@
 package com.ibm.couchdb.api
 
 import com.ibm.couchdb.spec.CouchDbSpecification
+import com.ibm.couchdb.{CouchDocs, CouchKeyVals, CouchReducedKeyVals}
+import org.specs2.matcher.MatchResult
+
+import scalaz.concurrent.Task
 
 class QueryViewSpec extends CouchDbSpecification {
 
@@ -39,89 +43,127 @@ class QueryViewSpec extends CouchDbSpecification {
   "Query View API" >> {
 
     "Query a view" >> {
-      val docs = awaitRight(namesView.query)
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(3)
-      docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdBob.id, createdCarl.id)
-      docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
-      docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+      def verify(task: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(3)
+        docs.rows.map(_.id) mustEqual Seq(createdAlice.id, createdBob.id, createdCarl.id)
+        docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+        docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+      }
+      verify(namesView.query)
+      verify(namesView.build.query)
+      verify(namesView.noReduce.excludeDocs.build.query)
     }
 
     "Query a view with reducer" >> {
-      val docs = awaitRight(aggregateView.queryWithReduce[Int])
-      docs.rows must haveLength(1)
-      docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
+      def verify(task: Task[CouchReducedKeyVals[String, Int]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.rows must haveLength(1)
+        docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
+      }
+      verify(aggregateView.queryWithReduce[Int])
+      verify(aggregateView.reduce[Int].build.query)
+      verify(aggregateView.noReduce.reduce[Int].build.query)
     }
 
     "Query a view with reducer given keys" >> {
-      val docs = awaitRight(
-        aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
-      docs.rows must haveLength(2)
-      docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
-      docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
+      def verify(task: Task[CouchReducedKeyVals[String, Int]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.rows must haveLength(2)
+        docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
+        docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
+      }
+      verify(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
+      verify(aggregateView.reduce[Int].withIds(Seq(createdCarl.id, createdAlice.id)).build.query)
     }
 
     "Query a view in the descending order" >> {
-      val docs = awaitRight(namesView.descending().query)
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(3)
-      docs.rows.map(_.id) mustEqual Seq(createdCarl.id, createdBob.id, createdAlice.id)
-      docs.rows.map(_.key) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
-      docs.rows.map(_.value) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
+      def verify(query: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
+        val docs = awaitRight(namesView.descending().query)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(3)
+        docs.rows.map(_.id) mustEqual Seq(createdCarl.id, createdBob.id, createdAlice.id)
+        docs.rows.map(_.key) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
+        docs.rows.map(_.value) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
+      }
+      verify(namesView.descending().query)
+      verify(namesView.descending().build.query)
     }
 
     "Query a view with compound keys and values" >> {
-      val docs = awaitRight(compoundView.query)
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(3)
-      docs.rows.map(_.key) mustEqual Seq((20, "Carl"), (25, "Alice"), (30, "Bob"))
-      docs.rows.map(_.value) must contain(allOf(fixAlice, fixBob, fixCarl))
+      def verify(query: Task[CouchKeyVals[(Int, String), FixPerson]]):
+      MatchResult[Seq[FixPerson]] = {
+        val docs = awaitRight(compoundView.query)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(3)
+        docs.rows.map(_.key) mustEqual Seq((20, "Carl"), (25, "Alice"), (30, "Bob"))
+        docs.rows.map(_.value) must contain(allOf(fixAlice, fixBob, fixCarl))
+      }
+      verify(compoundView.query)
+      verify(compoundView.build.query)
     }
 
     "Query a view and select by key" >> {
-      val docs1 = awaitRight(namesView.key("Alice").query)
-      docs1.offset mustEqual 0
-      docs1.total_rows mustEqual 3
-      docs1.rows must haveLength(1)
-      docs1.rows.head.key mustEqual "Alice"
-      docs1.rows.head.value mustEqual "Alice"
-      val docs2 = awaitRight(compoundView.key((30, "Bob")).query)
-      docs2.offset mustEqual 2
-      docs2.total_rows mustEqual 3
-      docs2.rows must haveLength(1)
-      docs2.rows.head.key mustEqual ((30, "Bob"))
+      def verify(task: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
+        val docs1 = awaitRight(task)
+        docs1.offset mustEqual 0
+        docs1.total_rows mustEqual 3
+        docs1.rows must haveLength(1)
+        docs1.rows.head.key mustEqual "Alice"
+        docs1.rows.head.value mustEqual "Alice"
+        val docs2 = awaitRight(compoundView.key((30, "Bob")).query)
+        docs2.offset mustEqual 2
+        docs2.total_rows mustEqual 3
+        docs2.rows must haveLength(1)
+        docs2.rows.head.key mustEqual ((30, "Bob"))
+      }
+      verify(namesView.key("Alice").query)
+      verify(namesView.key("Alice").build.query)
     }
 
     "Query a view and include documents" >> {
-      val docs = awaitRight(namesView.queryIncludeDocs[FixPerson])
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(3)
-      docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
-      docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
-      docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob, fixCarl)
+      def verify(task: Task[CouchDocs[String, String, FixPerson]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(3)
+        docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+        docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
+        docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob, fixCarl)
+      }
+      verify(namesView.queryIncludeDocs[FixPerson])
+      verify(namesView.includeDocs[FixPerson].build.query)
     }
 
     "Query a view with a set of keys" >> {
-      val docs = awaitRight(namesView.query(Seq(fixAlice.name, fixBob.name)))
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(2)
-      docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name)
-      docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
+      def verify(task: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(2)
+        docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name)
+        docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
+      }
+      verify(namesView.query(Seq(fixAlice.name, fixBob.name)))
+      verify(namesView.withIds(Seq(fixAlice.name, fixBob.name)).build.query)
     }
 
     "Query a view with a set of keys and include documents" >> {
-      val docs = awaitRight(namesView.queryIncludeDocs[FixPerson](Seq(fixAlice.name, fixBob.name)))
-      docs.offset mustEqual 0
-      docs.total_rows mustEqual 3
-      docs.rows must haveLength(2)
-      docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name)
-      docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
-      docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob)
+      def verify(task: Task[CouchDocs[String, String, FixPerson]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.offset mustEqual 0
+        docs.total_rows mustEqual 3
+        docs.rows must haveLength(2)
+        docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name)
+        docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
+        docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob)
+      }
+      verify(namesView.queryIncludeDocs[FixPerson](Seq(fixAlice.name, fixBob.name)))
+      verify(namesView.includeDocs[FixPerson].withIds(Seq(fixAlice.name, fixBob.name)).build.query)
     }
   }
 }
