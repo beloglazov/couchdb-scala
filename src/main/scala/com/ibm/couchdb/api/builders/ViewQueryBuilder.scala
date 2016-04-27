@@ -163,7 +163,7 @@ case class ViewQueryBuilder[K: R, V: R, DR <: DocsInResult, MR <: ViewOperation]
   }
 
   private def strategy[Q: R]: QueryView[K, Q] =
-    new QueryView[K, Q](client, db, design, params, ids, view, temporaryView)
+    new QueryView(client, db, design, params, ids, view, temporaryView)
 }
 
 object ViewQueryBuilder {

@@ -228,8 +228,8 @@ BT <: DocType] private(
     QueryByType[K, V, D](client, db, view.getOrElse(tempTypeFilterView), typeMappings)
 
 
-  private def strategy[Q: R]: QueryBasic[String, Q] =
-    new QueryBasic[String, Q](client, db, url, params, ids)
+  private def strategy[Q: R]: QueryBasic[Q] =
+    new QueryBasic(client, db, url, params, ids)
 }
 
 object GetManyDocumentsQueryBuilder {
@@ -239,7 +239,7 @@ object GetManyDocumentsQueryBuilder {
 
   case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
   (builder: MDBuilder[ID, AM, AnyDocType]) {
-    def build: QueryBasic[String, T] = QueryBasic(builder.client, builder.db, builder.url,
+    def build: QueryBasic[T] = QueryBasic(builder.client, builder.db, builder.url,
         builder.params, builder.ids)
   }
 
