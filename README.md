@@ -408,13 +408,26 @@ val allPeople2 = db.docs.getMany.byType[Person](your_view_name).build
 
 The first approach, `byTypeUsingTemporaryView[T]`, uses a temporary view
 under the hood for type based filtering. While convenient for development purposes, it is inefficient
-and should not be used in production. For efficiency you can use `byType[K, V, T]
-(view_name)`, or the simpler `byType[T](view_name)`, which require that you first create
+and should not be used in production.
+For efficiency you can use `byType[K, V, T](view_name)`, or the simpler `byType[T](view_name)`,
+which require that you first create
 a type filtering permanent view, and then pass its name as argument to these methods.
-Because it uses permanent views it is more efficient and is thus the recommended method for querying
- multiple documents by type.
-Note the first two type parameters `K` and `V` represent the key and value types of the permanent
-view respectively.
+Because these methods use a permanent view it is more efficient and is thus the recommended method
+for querying multiple documents by type.
+Note in `byType[K, V, T](view_name)` the first two type parameters `K` and `V` represent the key
+and value types of the permanent view respectively. In the simpler `byType[T](view_name)`, `K` is
+ implicitly assumed to be of type Tuple of strings`(String, String)` and `V` is assumed to be a
+ `String`.
+
+Below is an example of such a view you could add to your database. Note that it is
+important that the `kind` attribute of a view is used as a key, because it is used internally to
+filter the view.
+
+```javascript
+function(doc) {
+    emit([doc.kind, doc._id], doc._id);
+}
+```
 
 There is a similar query builder for retrieving single documents
 `GetDocumentQueryBuilder` that makes GET requests to the
