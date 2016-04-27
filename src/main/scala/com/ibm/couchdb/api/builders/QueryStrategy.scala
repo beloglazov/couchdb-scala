@@ -25,16 +25,16 @@ import upickle.default._
 import scala.reflect.ClassTag
 import scalaz.concurrent.Task
 
-case class QueryBasic[K: W, C: R](
+case class QueryBasic[C: R](
     client: Client, db: String, url: String, params: Map[String, String] = Map.empty,
-    ids: Seq[K] = Seq.empty) {
+    ids: Seq[String] = Seq.empty) {
 
   private val queryOps = QueryOps(client)
 
   def query: Task[C] = {
     ids match {
       case Nil => queryOps.query[C](url, params)
-      case _ => queryOps.queryByIds[K, C](url, ids, params)
+      case _ => queryOps.queryByIds[String, C](url, ids, params)
     }
   }
 }
