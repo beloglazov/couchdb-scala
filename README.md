@@ -402,15 +402,17 @@ no mapping is required since the document content is not retrieved.
 To retrieve all documents in the database of a given type without specifying ids, you could use either:
 ```Scala
 val allPeople1 = db.docs.getMany.byTypeUsingTemporaryView[Person].build.query
-val allPeople2 = db.docs.getMany.byType[String, String, Person](yourPermTypeFilterView).build
+val allPeople2 = db.docs.getMany.byType[Person](your_view_name).build
 .query
 ```
 
 The first approach, `byTypeUsingTemporaryView[T]`, uses a temporary view
 under the hood for type based filtering. While convenient for development purposes, it is inefficient
-and should be not be used in production. On the other hand, `byType[K, V, T](CouchView)`,
-uses a permanent view passed as argument for type based filtering. Because it uses permanent views
-it is more efficient and is thus the recommended method for querying multiple documents by type.
+and should not be used in production. For efficiency you can use `byType[K, V, T]
+(view_name)`, or the simpler `byType[T](view_name)`, which require that you first create
+a type filtering permanent view, and then pass its name as argument to these methods.
+Because it uses permanent views it is more efficient and is thus the recommended method for querying
+ multiple documents by type.
 Note the first two type parameters `K` and `V` represent the key and value types of the permanent
 view respectively.
 
