@@ -17,7 +17,6 @@
 package com.ibm.couchdb.api.builders
 
 import com.ibm.couchdb._
-import com.ibm.couchdb.api.Query
 import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
@@ -45,9 +44,8 @@ BT <: DocType] private(
     params: Map[String, String] = Map.empty[String, String],
     ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) {
 
-  val queryOps = QueryOps(client)
-
   private val log = org.log4s.getLogger
+  private[builders] val url: String = s"/$db/_all_docs"
 
   lazy val tempTypeFilterView: CouchView = {
     CouchView(
@@ -168,20 +166,21 @@ BT <: DocType] private(
   @deprecated(
     "Use build.query instead.", "0.7.1")
   def query: Task[CouchKeyVals[String, CouchDocRev]] = {
-    queryWithoutIds[CouchKeyVals[String, CouchDocRev]](params)
+    strategy[CouchKeyVals[String, CouchDocRev]].query
   }
 
   @deprecated(
     "Use withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def query(ids: Seq[String]): Task[CouchKeyVals[String, CouchDocRev]] = {
-    queryByIds[CouchKeyVals[String, CouchDocRev]](ids, params)
+    withIds(ids).strategy[CouchKeyVals[String, CouchDocRev]].query
   }
 
   @deprecated(
     "Use allowMissing.withIds(ks: Seq[String]).build.query instead.", "0.7.1")
   def queryAllowMissing(
       ids: Seq[String]): Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
-    queryByIds[CouchKeyValsIncludesMissing[String, CouchDocRev]](ids, params)
+    withIds(ids).allowMissing.strategy[CouchKeyValsIncludesMissing[String, CouchDocRev]]
+        .query
   }
 
   @deprecated(
@@ -189,17 +188,14 @@ BT <: DocType] private(
     "Use byType[K, V, D](view: CouchView).build.query or " +
     "byTypeUsingTemporaryView[D].build.query instead.", "0.7.0")
   def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
-    queryWithoutIds[CouchDocs[String, CouchDocRev, D]](includeDocs[D].params)
+    includeDocs[D].strategy[CouchDocs[String, CouchDocRev, D]].query
   }
 
   @deprecated(
     "Use byType[K, V, D](view: CouchView).build.query instead.", "0.7.1")
   def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
       (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
-    typeMappings.forType(tag.runtimeClass) match {
-      case Some(k) => queryByType[K, V, D](typeFilterView, k)
-      case None => Res.Error("not_found", s"type mapping not found").toTask
-    }
+    includeDocs[D].byType[K, V, D](typeFilterView).byTypeStrategy[K, V, D].query
   }
 
   @deprecated(
@@ -211,51 +207,40 @@ BT <: DocType] private(
       "It uses temporary views to perform type based filters and is inefficient. " +
       "Instead, create a permanent view for type based filtering and use the " +
       "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
-    queryByTypeIncludeDocs[(String, String), String, D](tempTypeFilterView)
+    includeDocs[D].byTypeUsingTemporaryView[D].byTypeStrategy[(String, String), String, D].query
   }
 
   @deprecated(
     "Use includeDocs.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
-    queryByIds[CouchDocs[String, CouchDocRev, D]](ids, includeDocs[D].params)
+    withIds(ids).includeDocs[D].strategy[CouchDocs[String, CouchDocRev, D]].query
   }
 
   @deprecated(
     "Use includeDocs.allowMissing.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
   def queryIncludeDocsAllowMissing[D: R](
       ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
-    queryByIds[CouchDocsIncludesMissing[String, CouchDocRev, D]](ids, includeDocs[D].params)
+    withIds(ids).includeDocs[D].allowMissing.strategy[CouchDocsIncludesMissing[String,
+        CouchDocRev, D]].query
   }
 
-  private def queryByType[K, V, D: R](view: CouchView, kind: String)
-      (implicit kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
-    new Query(client, db).temporaryView[K, V](view) match {
-      case Some(v) => v.startKey(Tuple1(kind)).endKey(Tuple2(kind, {})).queryIncludeDocs
-      case None => Res.Error("not_found", "invalid view specified").toTask
-    }
-  }
+  private def byTypeStrategy[K: R, V: R, D: R](implicit tag: ClassTag[D], kw: W[K]) =
+    QueryByType[K, V, D](client, db, view.getOrElse(tempTypeFilterView), typeMappings)
 
-  private def queryWithoutIds[Q: R](ps: Map[String, String]): Task[Q] = {
-    queryOps.query[Q](s"/$db/_all_docs", ps)
-  }
 
-  private def queryByIds[Q: R](ids: Seq[String], ps: Map[String, String]): Task[Q] = {
-    if (ids.isEmpty)
-      Res.Error("not_found", "No IDs specified").toTask
-    else
-      queryOps.queryByIds[String, Q](s"/$db/_all_docs", ids, ps)
-  }
+  private def strategy[Q: R]: QueryBasic[Q] =
+    new QueryBasic(client, db, url, params, ids)
 }
 
 object GetManyDocumentsQueryBuilder {
 
-  type MDBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType] =
+  private type MDBuilder[ID <: DocsInResult, AM <: MissingIdsInQuery, BT <: DocType] =
   GetManyDocumentsQueryBuilder[ID, AM, BT]
 
   case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
   (builder: MDBuilder[ID, AM, AnyDocType]) {
-    def build: QueryBasic[T] =
-      QueryBasic(builder.client, builder.db, builder.params, builder.ids)
+    def build: QueryBasic[T] = QueryBasic(builder.client, builder.db, builder.url,
+        builder.params, builder.ids)
   }
 
   case class ByTypeBuilder[K: R, V: R, D: R](
@@ -267,16 +252,17 @@ object GetManyDocumentsQueryBuilder {
     }
   }
 
-  type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs, MissingDisallowed]
-
-  type AllowMissingBuilder = Builder[CouchKeyValsIncludesMissing[String, CouchDocRev],
-      ExcludeDocs, MissingAllowed]
-
-  type IncludeDocsBuilder[D] = Builder[CouchDocs[String, CouchDocRev, D], IncludeDocs[D],
+  private type BasicBuilder = Builder[CouchKeyVals[String, CouchDocRev], ExcludeDocs,
       MissingDisallowed]
 
-  type AllowMissingIncludeDocsBuilder[D] = Builder[CouchDocsIncludesMissing[String, CouchDocRev,
-      D], IncludeDocs[D], MissingAllowed]
+  private type AllowMissingBuilder = Builder[CouchKeyValsIncludesMissing[String, CouchDocRev],
+      ExcludeDocs, MissingAllowed]
+
+  private type IncludeDocsBuilder[D] = Builder[CouchDocs[String, CouchDocRev, D], IncludeDocs[D],
+      MissingDisallowed]
+
+  private type AllowMissingIncludeDocsBuilder[D] = Builder[CouchDocsIncludesMissing[String,
+      CouchDocRev, D], IncludeDocs[D], MissingAllowed]
 
   implicit def buildBasic(builder: MDBuilder[ExcludeDocs, MissingDisallowed, AnyDocType]):
   BasicBuilder = new BasicBuilder(builder)
