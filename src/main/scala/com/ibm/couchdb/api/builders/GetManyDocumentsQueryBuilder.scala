@@ -96,18 +96,41 @@ BT <: DocType] private(
     set(params, ids, view)
   }
 
+  @deprecated(
+    "This method has a bug that causes it to always uses the temporary view API." +
+    "Use byType[K, V, D](view: String, design: String, mappedType: MappedDocType) " +
+    "instead", "0.7.2")
   def byType[K: R, V: R, D: R](view: CouchView):
   GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[K, V, D]] = {
     set(params, ids, Some(view))
   }
 
+  def byType[K: R, V: R, D: R](view: String, design: String, mappedType: MappedDocType)
+      (implicit kw: W[K]): ViewQueryBuilder[K, V, ID, MapOnly] = {
+    new ViewQueryBuilder[K, V, ID, MapOnly](
+      client, db, Option(design), Option(view), params = params).
+        startKey(Tuple1(mappedType.name)).endKey(Tuple2(mappedType.name, {}))
+  }
+
+  def byType[D: R](view: String, design: String, mappedType: MappedDocType):
+  ViewQueryBuilder[(String, String), String, ID, MapOnly] = {
+    byType[(String, String), String, D](view, design, mappedType)
+  }
+
+  @deprecated("Use byTypeUsingTemporaryView(mappedType: MappedDocType) instead", "0.7.2")
   def byTypeUsingTemporaryView[D: R]:
   GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[(String, String), String, D]] = {
     set(params, ids, Some(tempTypeFilterView))
   }
 
-  def inclusiveEnd(
-      inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
+  def byTypeUsingTemporaryView[D: R](mappedType: MappedDocType):
+  ViewQueryBuilder[(String, String), String, ID, MapOnly] = {
+    new ViewQueryBuilder[(String, String), String, ID, MapOnly](
+      client, db, None, None, temporaryView = Option(tempTypeFilterView), params = params).
+        startKey(Tuple1(mappedType.name)).endKey(Tuple2(mappedType.name, {}))
+  }
+
+  def inclusiveEnd(inclusiveEnd: Boolean = true): GetManyDocumentsQueryBuilder[ID, AM, BT] = {
     set("inclusive_end", inclusiveEnd)
   }
 
