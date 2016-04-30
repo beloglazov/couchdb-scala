@@ -51,6 +51,7 @@ trait Fixtures {
     val compound   = "compound"
     val reduced    = "reduced"
     val typeFilter = "typeFilter"
+    val typeFilterCustom = "typeFilterCustom"
 
     val namesView = CouchView(
       map =
@@ -90,6 +91,14 @@ trait Fixtures {
             |  emit([doc.kind, doc._id], doc._id);
             |}
           """.stripMargin)
+
+    val typeFilterViewCustom = CouchView(
+      map =
+          """
+            |function(doc) {
+            |  emit([doc.kind, doc._id, doc.doc.age], doc._id);
+            |}
+          """.stripMargin)
   }
 
   object FixShows {
@@ -107,7 +116,8 @@ trait Fixtures {
       FixViews.names -> FixViews.namesView,
       FixViews.reduced -> FixViews.reducedView,
       FixViews.compound -> FixViews.compoundView,
-      FixViews.typeFilter -> FixViews.typeFilterView
+      FixViews.typeFilter -> FixViews.typeFilterView,
+      FixViews.typeFilterCustom -> FixViews.typeFilterViewCustom
     ),
 
     shows = Map(
