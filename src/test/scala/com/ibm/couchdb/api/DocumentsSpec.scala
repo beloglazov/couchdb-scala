@@ -183,8 +183,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdXMenOnly = awaitRight(documents.createMany(expected))
       verify(
         awaitRight(
-          documents.getMany.byTypeUsingTemporaryView[FixXPerson](
-            typeMapping.get(classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
+          documents.getMany.byTypeUsingTemporaryView(typeMapping.get(
+            classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
     }
 
     "Get all documents by type and include the doc data" >> {
@@ -210,7 +210,7 @@ class DocumentsSpec extends CouchDbSpecification {
         createdXMenOnly, expected)
       verify(
         awaitRight(
-          documents.getMany.includeDocs[FixXPerson].byTypeUsingTemporaryView[FixXPerson](
+          documents.getMany.includeDocs[FixXPerson].byTypeUsingTemporaryView(
             typeMapping.get(classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
     }
 
@@ -229,9 +229,8 @@ class DocumentsSpec extends CouchDbSpecification {
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
       val docsNewAPI = awaitRight(
-        documents.getMany.byType[FixXPerson](
-          FixViews.typeFilter, fixDesign.name, typeMapping.get(classOf[FixXPerson]).get)
-            .build.query)
+        documents.getMany.byTypeSimple(FixViews.typeFilter, fixDesign.name,
+          typeMapping.get(classOf[FixXPerson]).get).build.query)
       verify(docsNewAPI, created, expected)
     }
 
@@ -261,9 +260,8 @@ class DocumentsSpec extends CouchDbSpecification {
             build.query)
       verify(docsOldAPI2, created, expected)
       val docsNewAPI = awaitRight(
-        documents.getMany.includeDocs[FixXPerson].byType[FixXPerson](
-          FixViews.typeFilter, fixDesign.name, typeMapping.get(classOf[FixXPerson]).get)
-            .build.query)
+        documents.getMany.includeDocs[FixXPerson].byTypeSimple(FixViews.typeFilter, fixDesign.name,
+          typeMapping.get(classOf[FixXPerson]).get).build.query)
       verify(docsNewAPI, created, expected)
     }
 
