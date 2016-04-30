@@ -142,9 +142,10 @@ class DocumentsSpec extends CouchDbSpecification {
         awaitRight(documents.getMany.allowMissing.withIds(existingIds ++ missingIds).build.query),
         missingIds, existingIds)
       verify(
-        awaitRight(documents.getMany.disallowMissing.allowMissing.
-            withIds(existingIds ++ missingIds).build.query), missingIds, existingIds)
-     }
+        awaitRight(
+          documents.getMany.disallowMissing.allowMissing.
+              withIds(existingIds ++ missingIds).build.query), missingIds, existingIds)
+    }
 
     "Get all documents and include the doc data" >> {
       def verify(
@@ -163,9 +164,28 @@ class DocumentsSpec extends CouchDbSpecification {
       val created = expected.map(x => awaitRight(documents.create(x)))
       verify(awaitRight(documents.getMany.queryIncludeDocs[FixPerson]), created, expected)
       verify(awaitRight(documents.getMany.includeDocs[FixPerson].build.query), created, expected)
-      verify(awaitRight(documents.getMany.excludeDocs.includeDocs[FixPerson].build.query), created,
+      verify(
+        awaitRight(documents.getMany.excludeDocs.includeDocs[FixPerson].build.query), created,
         expected)
-     }
+    }
+
+    "Get all documents by type" >> {
+      def verify(
+          docs: CouchKeyVals[(String, String), String], created: Seq[DocOk],
+          expected: Seq[FixXPerson]): MatchResult[Any] = {
+        docs.total_rows must beGreaterThanOrEqualTo(created.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.value) mustEqual created.map(_.id)
+      }
+      clear()
+      awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
+      val expected = Seq(fixProfessorX, fixMagneto)
+      val createdXMenOnly = awaitRight(documents.createMany(expected))
+      verify(
+        awaitRight(
+          documents.getMany.byTypeUsingTemporaryView(typeMapping.get(
+            classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
+    }
 
     "Get all documents by type and include the doc data" >> {
       def verify(
@@ -188,6 +208,30 @@ class DocumentsSpec extends CouchDbSpecification {
       verify(
         awaitRight(documents.getMany.byTypeUsingTemporaryView[FixXPerson].build.query),
         createdXMenOnly, expected)
+      verify(
+        awaitRight(
+          documents.getMany.includeDocs[FixXPerson].byTypeUsingTemporaryView(
+            typeMapping.get(classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
+    }
+
+    "Get all documents by type given a permanent type filter view" >> {
+      def verify(
+          docs: CouchKeyVals[(String, String), String], created: Seq[DocOk],
+          expected: Seq[FixXPerson]): MatchResult[Any] = {
+        docs.total_rows must beGreaterThan(created.size)
+        docs.rows must haveLength(expected.size)
+        docs.rows.map(_.value) mustEqual created.map(_.id)
+      }
+      clear()
+      val design = new Design(client, db)
+      awaitRight(design.create(fixDesign))
+      awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
+      val expected = Seq(fixProfessorX, fixMagneto)
+      val created = awaitRight(documents.createMany(expected))
+      val docsNewAPI = awaitRight(
+        documents.getMany.byTypeSimple(FixViews.typeFilter, fixDesign.name,
+          typeMapping.get(classOf[FixXPerson]).get).build.query)
+      verify(docsNewAPI, created, expected)
     }
 
     "Get all documents by type and include the doc data, given a permanent type filter view" >> {
@@ -211,9 +255,13 @@ class DocumentsSpec extends CouchDbSpecification {
         documents.getMany.queryByTypeIncludeDocs[(String, String), String, FixXPerson](
           FixViews.typeFilterView))
       verify(docsOldAPI, created, expected)
+      val docsOldAPI2 = awaitRight(
+        documents.getMany.byType[(String, String), String, FixXPerson](FixViews.typeFilterView).
+            build.query)
+      verify(docsOldAPI2, created, expected)
       val docsNewAPI = awaitRight(
-        documents.getMany.byType[(String, String), String, FixXPerson]
-            (FixViews.typeFilterView).build.query)
+        documents.getMany.includeDocs[FixXPerson].byTypeSimple(FixViews.typeFilter, fixDesign.name,
+          typeMapping.get(classOf[FixXPerson]).get).build.query)
       verify(docsNewAPI, created, expected)
     }
 

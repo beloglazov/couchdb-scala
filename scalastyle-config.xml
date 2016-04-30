@@ -109,7 +109,7 @@
  </check>
  <check level="warning" class="org.scalastyle.scalariform.NumberOfMethodsInTypeChecker" enabled="true">
   <parameters>
-   <parameter name="maxMethods"><![CDATA[35]]></parameter> <!-- TODO: Change to 30 after
+   <parameter name="maxMethods"><![CDATA[40]]></parameter> <!-- TODO: Change to 30 after
    deprecated methods from GetManyDocumentsQueryBuilder and ViewQueryBuilder are removed -->
   </parameters>
  </check>
