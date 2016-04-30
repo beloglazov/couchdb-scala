@@ -27,7 +27,7 @@ sealed trait ViewOperation
 abstract class MapWithReduce[A: R] extends ViewOperation
 trait MapOnly extends ViewOperation
 
-case class ViewQueryBuilder[K: R, V: R, DR <: DocsInResult, MR <: ViewOperation] private(
+case class ViewQueryBuilder[K: R, V: R, DR <: DocsInResult, MR <: ViewOperation] private[builders](
     client: Client,
     db: String,
     design: Option[String],
