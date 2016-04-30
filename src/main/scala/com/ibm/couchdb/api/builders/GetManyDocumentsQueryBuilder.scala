@@ -105,16 +105,16 @@ BT <: DocType] private(
     set(params, ids, Some(view))
   }
 
-  def byType[K: R, V: R, D: R](view: String, design: String, mappedType: MappedDocType)
+  def byType[K: R, V: R](view: String, design: String, mappedType: MappedDocType)
       (implicit kw: W[K]): ViewQueryBuilder[K, V, ID, MapOnly] = {
     new ViewQueryBuilder[K, V, ID, MapOnly](
       client, db, Option(design), Option(view), params = params).
         startKey(Tuple1(mappedType.name)).endKey(Tuple2(mappedType.name, {}))
   }
 
-  def byType[D: R](view: String, design: String, mappedType: MappedDocType):
+  def byTypeSimple(view: String, design: String, mappedType: MappedDocType):
   ViewQueryBuilder[(String, String), String, ID, MapOnly] = {
-    byType[(String, String), String, D](view, design, mappedType)
+    byType[(String, String), String](view, design, mappedType)
   }
 
   @deprecated("Use byTypeUsingTemporaryView(mappedType: MappedDocType) instead", "0.7.2")
@@ -123,7 +123,7 @@ BT <: DocType] private(
     set(params, ids, Some(tempTypeFilterView))
   }
 
-  def byTypeUsingTemporaryView[D: R](mappedType: MappedDocType):
+  def byTypeUsingTemporaryView(mappedType: MappedDocType):
   ViewQueryBuilder[(String, String), String, ID, MapOnly] = {
     new ViewQueryBuilder[(String, String), String, ID, MapOnly](
       client, db, None, None, temporaryView = Option(tempTypeFilterView), params = params).
