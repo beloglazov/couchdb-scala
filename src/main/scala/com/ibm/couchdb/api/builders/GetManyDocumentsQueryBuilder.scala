@@ -112,9 +112,9 @@ BT <: DocType] private(
         startKey(Tuple1(mappedType.name)).endKey(Tuple2(mappedType.name, {}))
   }
 
-  def byTypeSimple(view: String, design: String, mappedType: MappedDocType):
-  ViewQueryBuilder[(String, String), String, ID, MapOnly] = {
-    byType[(String, String), String](view, design, mappedType)
+  def byType[V: R](view: String, design: String, mappedType: MappedDocType):
+  ViewQueryBuilder[(String, String), V, ID, MapOnly] = {
+    byType[(String, String), V](view, design, mappedType)
   }
 
   @deprecated("Use byTypeUsingTemporaryView(mappedType: MappedDocType) instead", "0.7.2")

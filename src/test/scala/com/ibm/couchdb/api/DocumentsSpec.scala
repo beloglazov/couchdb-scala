@@ -229,7 +229,7 @@ class DocumentsSpec extends CouchDbSpecification {
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
       val docsNewAPI = awaitRight(
-        documents.getMany.byTypeSimple(FixViews.typeFilter, fixDesign.name,
+        documents.getMany.byType[String](FixViews.typeFilter, fixDesign.name,
           typeMapping.get(classOf[FixXPerson]).get).build.query)
       verify(docsNewAPI, created, expected)
       val docsNewAPICustom = awaitRight(
@@ -264,8 +264,8 @@ class DocumentsSpec extends CouchDbSpecification {
             build.query)
       verify(docsOldAPI2, created, expected)
       val docsNewAPI = awaitRight(
-        documents.getMany.includeDocs[FixXPerson].byTypeSimple(FixViews.typeFilter, fixDesign.name,
-          typeMapping.get(classOf[FixXPerson]).get).build.query)
+        documents.getMany.includeDocs[FixXPerson].byType[String](FixViews.typeFilter, fixDesign
+            .name, typeMapping.get(classOf[FixXPerson]).get).build.query)
       verify(docsNewAPI, created, expected)
       val docsNewAPICustom = awaitRight(
         documents.getMany.includeDocs[FixXPerson].byType[(String, String, Int), String](FixViews
