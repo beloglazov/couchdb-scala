@@ -399,34 +399,44 @@ set to its default `false` value. This query will only return metadata on the
 matching documents. In this case, we don't need to specify the type parameter as
 no mapping is required since the document content is not retrieved.
 
-To retrieve all documents in the database of a given type without specifying ids, you could use either:
+To retrieve all documents in the database of a given type without specifying ids, you could use
+one of the following approaches:
 ```Scala
 val allPeople1 = db.docs.getMany.byTypeUsingTemporaryView[Person].build.query
-val allPeople2 = db.docs.getMany.byType[Person](your_view_name).build
-.query
 ```
 
 The first approach, `byTypeUsingTemporaryView[T]`, uses a temporary view
 under the hood for type based filtering. While convenient for development purposes, it is inefficient
 and should not be used in production.
-For efficiency you can use `byType[K, V, T](view_name)`, or the simpler `byType[T](view_name)`,
-which require that you first create
-a type filtering permanent view, and then pass its name as argument to these methods.
-Because these methods use a permanent view it is more efficient and is thus the recommended method
-for querying multiple documents by type.
-Note in `byType[K, V, T](view_name)` the first two type parameters `K` and `V` represent the key
-and value types of the permanent view respectively. In the simpler `byType[T](view_name)`, `K` is
- implicitly assumed to be of type Tuple of strings`(String, String)` and `V` is assumed to be a
- `String`.
 
-Below is an example of such a view you could add to your database. Note that it is
-important that the `kind` attribute of a view is used as a key, because it is used internally to
-filter the view.
+For efficiency you should instead use `byType[K, V](view_name)`, or the simpler
+`byType[V](view_name)`, which require that you first create
+a type filtering permanent view, and then pass its name as argument to one of these methods.
+Because a permanent view is used, these approaches are more efficient and are thus the recommended
+approach for type based document filtering.
+
+Note in `byType[K, V](view_name)` the parameters `K` and `V` represent the key and value types
+of the permanent view. The document's `kind` attribute must be the first key of such a
+ view, as in the type filter view function example shown below.
 
 ```javascript
 function(doc) {
     emit([doc.kind, doc._id], doc._id);
 }
+```
+
+The above function could then be used as follows:
+```scala
+val allPeople2 = db.docs.getMany.byType[(String, String), String](your_view_name).build.query
+```
+
+In the simpler `byType[V](view_name)`, `K` is implicitly assumed to be of type Tuple of two strings
+`(String, String)`. Note the document's `kind` attribute must be the first key of such a
+ view, as in the type filter view function example defined above.
+
+The above function could then be used as follows:
+```scala
+val allPeople3 = db.docs.getMany.byType[String](your_view_name).build.query
 ```
 
 There is a similar query builder for retrieving single documents
