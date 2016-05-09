@@ -92,12 +92,10 @@ class DocumentsSpec extends CouchDbSpecification {
       clear()
       val created = Seq(
         awaitRight(documents.create(fixAlice)), awaitRight(documents.create(fixAlice)))
-      val docsOldAPI = awaitRight(documents.getMany.query)
-      verify(docsOldAPI, created)
-      val docsNewAPI = awaitRight(documents.getMany.build.query)
-      val docsNewAPIWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
-      verify(docsNewAPI, created)
-      verify(docsNewAPIWithExcludeDocs, created)
+      val docsAPI = awaitRight(documents.getMany.build.query)
+      val docsAPIWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
+      verify(docsAPI, created)
+      verify(docsAPIWithExcludeDocs, created)
     }
 
     "Get multiple documents by IDs" >> {
@@ -112,13 +110,12 @@ class DocumentsSpec extends CouchDbSpecification {
       clear()
       val created = Seq(fixAlice, fixCarl, fixBob).map(x => awaitRight(documents.create(x)))
       val expected = created.take(2)
-      verify(awaitRight(documents.getMany.query(expected.map(_.id))), created, expected)
       verify(
         awaitRight(documents.getMany.withIds(expected.map(_.id)).build.query), created, expected)
       verify(
         awaitRight(
-          documents.getMany.disallowMissing.excludeDocs.withIds(expected.map(_.id)).build
-              .query), created, expected)
+          documents.getMany.disallowMissing.excludeDocs.withIds(expected.map(_.id)).build.query),
+        created, expected)
     }
 
     "Get multiple documents by IDs with some missing" >> {
@@ -135,9 +132,6 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      verify(
-        awaitRight(documents.getMany.queryAllowMissing(existingIds ++ missingIds)), missingIds,
-        existingIds)
       verify(
         awaitRight(documents.getMany.allowMissing.withIds(existingIds ++ missingIds).build.query),
         missingIds, existingIds)
@@ -162,7 +156,6 @@ class DocumentsSpec extends CouchDbSpecification {
       clear()
       val expected = Seq(fixAlice, fixBob)
       val created = expected.map(x => awaitRight(documents.create(x)))
-      verify(awaitRight(documents.getMany.queryIncludeDocs[FixPerson]), created, expected)
       verify(awaitRight(documents.getMany.includeDocs[FixPerson].build.query), created, expected)
       verify(
         awaitRight(documents.getMany.excludeDocs.includeDocs[FixPerson].build.query), created,
@@ -183,8 +176,9 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdXMenOnly = awaitRight(documents.createMany(expected))
       verify(
         awaitRight(
-          documents.getMany.byTypeUsingTemporaryView(typeMapping.get(
-            classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
+          documents.getMany.byTypeUsingTemporaryView(
+            typeMapping.get(
+              classOf[FixXPerson]).get).build.query), createdXMenOnly, expected)
     }
 
     "Get all documents by type and include the doc data" >> {
@@ -202,12 +196,6 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val expected = Seq(fixProfessorX, fixMagneto)
       val createdXMenOnly = awaitRight(documents.createMany(expected))
-      verify(
-        awaitRight(documents.getMany.queryByTypeIncludeDocsWithTemporaryView[FixXPerson]),
-        createdXMenOnly, expected)
-      verify(
-        awaitRight(documents.getMany.byTypeUsingTemporaryView[FixXPerson].build.query),
-        createdXMenOnly, expected)
       verify(
         awaitRight(
           documents.getMany.includeDocs[FixXPerson].byTypeUsingTemporaryView(
@@ -228,15 +216,15 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
-      val docsNewAPI = awaitRight(
+      val docsAPI = awaitRight(
         documents.getMany.byType[String](FixViews.typeFilter, fixDesign.name,
           typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsNewAPI, created, expected)
-      val docsNewAPICustom = awaitRight(
+      verify(docsAPI, created, expected)
+      val docsAPICustom = awaitRight(
         documents.getMany.byType[(String, String, Int), String](FixViews.typeFilterCustom,
           fixDesign.name, typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsNewAPICustom, created, expected)
-     }
+      verify(docsAPICustom, created, expected)
+    }
 
     "Get all documents by type and include the doc data, given a permanent type filter view" >> {
       def verify(
@@ -255,23 +243,17 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
-      val docsOldAPI = awaitRight(
-        documents.getMany.queryByTypeIncludeDocs[(String, String), String, FixXPerson](
-          FixViews.typeFilterView))
-      verify(docsOldAPI, created, expected)
-      val docsOldAPI2 = awaitRight(
-        documents.getMany.byType[(String, String), String, FixXPerson](FixViews.typeFilterView).
-            build.query)
-      verify(docsOldAPI2, created, expected)
-      val docsNewAPI = awaitRight(
-        documents.getMany.includeDocs[FixXPerson].byType[String](FixViews.typeFilter, fixDesign
-            .name, typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsNewAPI, created, expected)
-      val docsNewAPICustom = awaitRight(
-        documents.getMany.includeDocs[FixXPerson].byType[(String, String, Int), String](FixViews
-            .typeFilterCustom, fixDesign.name, typeMapping.get(classOf[FixXPerson]).get)
+      val docsAPI = awaitRight(
+        documents.getMany.includeDocs[FixXPerson].byType[String](
+          FixViews.typeFilter, fixDesign.name,
+          typeMapping.get(classOf[FixXPerson]).get).build.query)
+      verify(docsAPI, created, expected)
+      val docsAPICustom = awaitRight(
+        documents.getMany.includeDocs[FixXPerson].byType[(String, String, Int), String](
+          FixViews
+              .typeFilterCustom, fixDesign.name, typeMapping.get(classOf[FixXPerson]).get)
             .build.query)
-      verify(docsNewAPICustom, created, expected)
+      verify(docsAPICustom, created, expected)
 
     }
 
@@ -319,22 +301,16 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docsOldAPI = awaitRight(
-        documents.getMany.queryIncludeDocsAllowMissing[FixPerson](existingIds ++ missingIds))
-      verify(docsOldAPI, missingIds, existingIds, fixPersons)
-      val docsNewAPI = awaitRight(
+      val docsAPI = awaitRight(
         documents.getMany.includeDocs[FixPerson].allowMissing.withIds(existingIds ++ missingIds).
             build.query)
-      verify(docsNewAPI, missingIds, existingIds, fixPersons)
+      verify(docsAPI, missingIds, existingIds, fixPersons)
     }
 
     "Get a document containing unicode values" >> {
       clear()
-      val created1 = awaitRight(documents.create[FixPerson](fixHaile))
-      awaitRight(documents.get[FixPerson](created1.id)).doc mustEqual fixHaile
-      val created2 = awaitRight(documents.createMany[FixPerson](Seq(fixHaile, fixMagritte)))
-      val docs = awaitRight(documents.getMany.queryIncludeDocs[FixPerson](created2.map(_.id)))
-      docs.getDocs.map(_.doc) mustEqual Seq(fixHaile, fixMagritte)
+      val created = awaitRight(documents.create[FixPerson](fixHaile))
+      awaitRight(documents.get[FixPerson](created.id)).doc mustEqual fixHaile
     }
 
     "Update a document" >> {

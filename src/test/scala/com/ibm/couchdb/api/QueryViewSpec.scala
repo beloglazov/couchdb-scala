@@ -52,7 +52,6 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
         docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
       }
-      verify(namesView.query)
       verify(namesView.build.query)
       verify(namesView.noReduce.excludeDocs.build.query)
     }
@@ -63,7 +62,6 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows must haveLength(1)
         docs.rows.head.value mustEqual Seq(fixCarl.age, fixBob.age, fixAlice.age).sum
       }
-      verify(aggregateView.queryWithReduce[Int])
       verify(aggregateView.reduce[Int].build.query)
       verify(aggregateView.noReduce.reduce[Int].build.query)
     }
@@ -75,13 +73,12 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.value).sum mustEqual Seq(fixCarl.age, fixAlice.age).sum
         docs.rows.map(_.key) mustEqual Seq(createdCarl.id, createdAlice.id)
       }
-      verify(aggregateView.queryWithReduce[Int](Seq(createdCarl.id, createdAlice.id)))
       verify(aggregateView.reduce[Int].withIds(Seq(createdCarl.id, createdAlice.id)).build.query)
     }
 
     "Query a view in the descending order" >> {
-      def verify(query: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
-        val docs = awaitRight(namesView.descending().query)
+      def verify(task: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
+        val docs = awaitRight(task)
         docs.offset mustEqual 0
         docs.total_rows mustEqual 3
         docs.rows must haveLength(3)
@@ -89,40 +86,32 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.key) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
         docs.rows.map(_.value) mustEqual Seq(fixCarl.name, fixBob.name, fixAlice.name)
       }
-      verify(namesView.descending().query)
       verify(namesView.descending().build.query)
     }
 
     "Query a view with compound keys and values" >> {
-      def verify(query: Task[CouchKeyVals[(Int, String), FixPerson]]):
-      MatchResult[Seq[FixPerson]] = {
-        val docs = awaitRight(compoundView.query)
+      def verify(
+          task: Task[CouchKeyVals[(Int, String), FixPerson]]): MatchResult[Seq[FixPerson]] = {
+        val docs = awaitRight(task)
         docs.offset mustEqual 0
         docs.total_rows mustEqual 3
         docs.rows must haveLength(3)
         docs.rows.map(_.key) mustEqual Seq((20, "Carl"), (25, "Alice"), (30, "Bob"))
         docs.rows.map(_.value) must contain(allOf(fixAlice, fixBob, fixCarl))
       }
-      verify(compoundView.query)
       verify(compoundView.build.query)
     }
 
     "Query a view and select by key" >> {
-      def verify(task: Task[CouchKeyVals[String, String]]): MatchResult[Any] = {
-        val docs1 = awaitRight(task)
-        docs1.offset mustEqual 0
-        docs1.total_rows mustEqual 3
-        docs1.rows must haveLength(1)
-        docs1.rows.head.key mustEqual "Alice"
-        docs1.rows.head.value mustEqual "Alice"
-        val docs2 = awaitRight(compoundView.key((30, "Bob")).query)
-        docs2.offset mustEqual 2
-        docs2.total_rows mustEqual 3
-        docs2.rows must haveLength(1)
-        docs2.rows.head.key mustEqual ((30, "Bob"))
+      def verify[K, V, I](
+          task: Task[CouchKeyVals[K, V]], expected: Seq[I], total: Int): MatchResult[Any] = {
+        val docs = awaitRight(task)
+        docs.total_rows mustEqual total
+        docs.rows must haveLength(expected.length)
+        docs.rows.map(_.key) must containTheSameElementsAs(expected)
       }
-      verify(namesView.key("Alice").query)
-      verify(namesView.key("Alice").build.query)
+      verify(namesView.key("Alice").build.query, Seq("Alice"), 3)
+      verify(compoundView.key((30, "Bob")).build.query, Seq((30, "Bob")), 3)
     }
 
     "Query a view and include documents" >> {
@@ -135,7 +124,6 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name, fixCarl.name)
         docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob, fixCarl)
       }
-      verify(namesView.queryIncludeDocs[FixPerson])
       verify(namesView.includeDocs[FixPerson].build.query)
     }
 
@@ -148,7 +136,6 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.key) mustEqual Seq(fixAlice.name, fixBob.name)
         docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
       }
-      verify(namesView.query(Seq(fixAlice.name, fixBob.name)))
       verify(namesView.withIds(Seq(fixAlice.name, fixBob.name)).build.query)
     }
 
@@ -162,7 +149,6 @@ class QueryViewSpec extends CouchDbSpecification {
         docs.rows.map(_.value) mustEqual Seq(fixAlice.name, fixBob.name)
         docs.rows.map(_.doc.doc) mustEqual Seq(fixAlice, fixBob)
       }
-      verify(namesView.queryIncludeDocs[FixPerson](Seq(fixAlice.name, fixBob.name)))
       verify(namesView.includeDocs[FixPerson].withIds(Seq(fixAlice.name, fixBob.name)).build.query)
     }
   }

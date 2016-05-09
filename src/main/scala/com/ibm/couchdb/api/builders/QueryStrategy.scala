@@ -76,8 +76,8 @@ case class QueryByType[K, V, D: R](
     (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]) {
 
   def query: Task[CouchDocs[K, V, D]] = {
-    typeMappings.forType(tag.runtimeClass) match {
-      case Some(k) => queryByType(typeFilterView, k)
+    typeMappings.get(tag.runtimeClass) match {
+      case Some(k) => queryByType(typeFilterView, k.name)
       case None => Res.Error("not_found", s"type mapping not found").toTask
     }
   }

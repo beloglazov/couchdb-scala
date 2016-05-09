@@ -19,11 +19,6 @@ package com.ibm.couchdb
 final case class MappedDocType private(name: String)
 
 final class TypeMapping private(private val types: Map[String, String]) {
-  @deprecated("Use the get(t: Class[_]) instead", "0.7.2")
-  def forType(t: Class[_]): Option[String] = {
-    types.get(t.getCanonicalName)
-  }
-
   def get(t: Class[_]): Option[MappedDocType] = {
     types.get(t.getCanonicalName).map(MappedDocType)
   }

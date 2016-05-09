@@ -41,12 +41,12 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
   def create[D: W](
       obj: D, id: String,
       attachments: Map[String, CouchAttachment] = Map.empty): Task[Res.DocOk] = {
-    typeMapping.forType(obj.getClass) match {
+    typeMapping.get(obj.getClass) match {
       case Some(t) =>
         client.put[CouchDoc[D], Res.DocOk](
           s"/$db/$id",
           Status.Created,
-          CouchDoc[D](obj, t, _attachments = attachments))
+          CouchDoc[D](obj, t.name, _attachments = attachments))
       case None =>
         val cl = obj.getClass.getCanonicalName
         Res.Error(
@@ -73,7 +73,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
           objs.map { o => CouchDoc[D](
             _id = o._1,
             doc = o._2,
-            kind = typeMapping.forType(o._2.getClass).getOrElse(""))
+            kind = typeMapping.get(o._2.getClass).fold("")(_.name))
           })
     }
   }
@@ -102,7 +102,7 @@ class Documents(client: Client, db: String, typeMapping: TypeMapping) {
     GetManyDocumentsQueryBuilder(client, db, typeMapping)
 
   def getMany[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
-    getMany.queryIncludeDocs[D](ids)
+    getMany.includeDocs[D].withIds(ids).build.query
   }
 
   def update[D: W](obj: CouchDoc[D]): Task[Res.DocOk] = {
