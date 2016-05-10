@@ -40,7 +40,7 @@ trait CouchDbSpecification extends Specification with
   val client = new Client(
     Config(SpecConfig.couchDbHost, SpecConfig.couchDbPort, https = false, None))
 
-  def await[T](future: Task[T]): Throwable \/ T = future.attemptRun
+  def await[T](future: Task[T]): Throwable \/ T = future.unsafePerformSyncAttempt
 
   def awaitRight[T](future: Task[T]): T = {
     val res = await(future)
