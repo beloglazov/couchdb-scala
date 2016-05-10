@@ -92,10 +92,10 @@ class DocumentsSpec extends CouchDbSpecification {
       clear()
       val created = Seq(
         awaitRight(documents.create(fixAlice)), awaitRight(documents.create(fixAlice)))
-      val docsAPI = awaitRight(documents.getMany.build.query)
-      val docsAPIWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
-      verify(docsAPI, created)
-      verify(docsAPIWithExcludeDocs, created)
+      val docs = awaitRight(documents.getMany.build.query)
+      val docsWithExcludeDocs = awaitRight(documents.getMany.excludeDocs.build.query)
+      verify(docs, created)
+      verify(docsWithExcludeDocs, created)
     }
 
     "Get multiple documents by IDs" >> {
@@ -216,14 +216,16 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
-      val docsAPI = awaitRight(
-        documents.getMany.byType[String](FixViews.typeFilter, fixDesign.name,
+      val docs = awaitRight(
+        documents.getMany.byType[String](
+          FixViews.typeFilter, fixDesign.name,
           typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsAPI, created, expected)
-      val docsAPICustom = awaitRight(
-        documents.getMany.byType[(String, String, Int), String](FixViews.typeFilterCustom,
+      verify(docs, created, expected)
+      val docsCustom = awaitRight(
+        documents.getMany.byType[(String, String, Int), String](
+          FixViews.typeFilterCustom,
           fixDesign.name, typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsAPICustom, created, expected)
+      verify(docsCustom, created, expected)
     }
 
     "Get all documents by type and include the doc data, given a permanent type filter view" >> {
@@ -243,17 +245,17 @@ class DocumentsSpec extends CouchDbSpecification {
       awaitRight(documents.createMany(Seq(fixAlice, fixBob)))
       val expected = Seq(fixProfessorX, fixMagneto)
       val created = awaitRight(documents.createMany(expected))
-      val docsAPI = awaitRight(
+      val docs = awaitRight(
         documents.getMany.includeDocs[FixXPerson].byType[String](
           FixViews.typeFilter, fixDesign.name,
           typeMapping.get(classOf[FixXPerson]).get).build.query)
-      verify(docsAPI, created, expected)
-      val docsAPICustom = awaitRight(
+      verify(docs, created, expected)
+      val docsCustom = awaitRight(
         documents.getMany.includeDocs[FixXPerson].byType[(String, String, Int), String](
           FixViews
               .typeFilterCustom, fixDesign.name, typeMapping.get(classOf[FixXPerson]).get)
             .build.query)
-      verify(docsAPICustom, created, expected)
+      verify(docsCustom, created, expected)
 
     }
 
@@ -301,10 +303,10 @@ class DocumentsSpec extends CouchDbSpecification {
       val createdPersons = fixPersons.map(person => awaitRight(documents.create(person)))
       val missingIds = Seq("non-existent-id-1", "non-existent-id-2")
       val existingIds = createdPersons.map(_.id)
-      val docsAPI = awaitRight(
+      val docs = awaitRight(
         documents.getMany.includeDocs[FixPerson].allowMissing.withIds(existingIds ++ missingIds).
             build.query)
-      verify(docsAPI, missingIds, existingIds, fixPersons)
+      verify(docs, missingIds, existingIds, fixPersons)
     }
 
     "Get a document containing unicode values" >> {
