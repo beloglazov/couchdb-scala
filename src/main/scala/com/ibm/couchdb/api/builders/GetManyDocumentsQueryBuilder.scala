@@ -22,7 +22,6 @@ import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
 import scala.reflect.ClassTag
-import scalaz.concurrent.Task
 
 sealed trait DocsInResult
 abstract class IncludeDocs[D: R] extends DocsInResult
@@ -44,7 +43,6 @@ BT <: DocType] private(
     params: Map[String, String] = Map.empty[String, String],
     ids: Seq[String] = Seq.empty, view: Option[CouchView] = None) {
 
-  private val log = org.log4s.getLogger
   private[builders] val url: String = s"/$db/_all_docs"
 
   lazy val tempTypeFilterView: CouchView = {
@@ -96,15 +94,6 @@ BT <: DocType] private(
     set(params, ids, view)
   }
 
-  @deprecated(
-    "This method has a bug that causes it to always uses the temporary view API." +
-    "Use byType[K, V, D](view: String, design: String, mappedType: MappedDocType) " +
-    "instead", "0.7.2")
-  def byType[K: R, V: R, D: R](view: CouchView):
-  GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[K, V, D]] = {
-    set(params, ids, Some(view))
-  }
-
   def byType[K: R, V: R](view: String, design: String, mappedType: MappedDocType)
       (implicit kw: W[K]): ViewQueryBuilder[K, V, ID, MapOnly] = {
     new ViewQueryBuilder[K, V, ID, MapOnly](
@@ -115,12 +104,6 @@ BT <: DocType] private(
   def byType[V: R](view: String, design: String, mappedType: MappedDocType):
   ViewQueryBuilder[(String, String), V, ID, MapOnly] = {
     byType[(String, String), V](view, design, mappedType)
-  }
-
-  @deprecated("Use byTypeUsingTemporaryView(mappedType: MappedDocType) instead", "0.7.2")
-  def byTypeUsingTemporaryView[D: R]:
-  GetManyDocumentsQueryBuilder[IncludeDocs[D], AM, ForDocType[(String, String), String, D]] = {
-    set(params, ids, Some(tempTypeFilterView))
   }
 
   def byTypeUsingTemporaryView(mappedType: MappedDocType):
@@ -185,74 +168,6 @@ BT <: DocType] private(
       key: String, value: Any): GetManyDocumentsQueryBuilder[I, A, B] = {
     set(key, value.toString)
   }
-
-  @deprecated(
-    "Use build.query instead.", "0.7.1")
-  def query: Task[CouchKeyVals[String, CouchDocRev]] = {
-    strategy[CouchKeyVals[String, CouchDocRev]].query
-  }
-
-  @deprecated(
-    "Use withIds(ids: Seq[String]).build.query instead.", "0.7.1")
-  def query(ids: Seq[String]): Task[CouchKeyVals[String, CouchDocRev]] = {
-    withIds(ids).strategy[CouchKeyVals[String, CouchDocRev]].query
-  }
-
-  @deprecated(
-    "Use allowMissing.withIds(ks: Seq[String]).build.query instead.", "0.7.1")
-  def queryAllowMissing(
-      ids: Seq[String]): Task[CouchKeyValsIncludesMissing[String, CouchDocRev]] = {
-    withIds(ids).allowMissing.strategy[CouchKeyValsIncludesMissing[String, CouchDocRev]]
-        .query
-  }
-
-  @deprecated(
-    "Fails if different document types exist in the Db. " +
-    "Use byType[K, V, D](view: CouchView).build.query or " +
-    "byTypeUsingTemporaryView[D].build.query instead.", "0.7.0")
-  def queryIncludeDocs[D: R]: Task[CouchDocs[String, CouchDocRev, D]] = {
-    includeDocs[D].strategy[CouchDocs[String, CouchDocRev, D]].query
-  }
-
-  @deprecated(
-    "Use byType[K, V, D](view: CouchView).build.query instead.", "0.7.1")
-  def queryByTypeIncludeDocs[K, V, D: R](typeFilterView: CouchView)
-      (implicit tag: ClassTag[D], kr: R[K], kw: W[K], vr: R[V]): Task[CouchDocs[K, V, D]] = {
-    includeDocs[D].byType[K, V, D](typeFilterView).byTypeStrategy[K, V, D].query
-  }
-
-  @deprecated(
-    "Use byTypeUsingTemporaryView[D].build.query instead.", "0.7.1")
-  def queryByTypeIncludeDocsWithTemporaryView[D: R](
-      implicit tag: ClassTag[D]): Task[CouchDocs[(String, String), String, D]] = {
-    log.warn(
-      "Only use `queryByTypeIncludeDocsWithTemporaryView[D: R]` for development purposes." +
-      "It uses temporary views to perform type based filters and is inefficient. " +
-      "Instead, create a permanent view for type based filtering and use the " +
-      "`queryByTypeIncludeDocs[K, V, D: R] (typeFilterView: CouchView) method.")
-    includeDocs[D].byTypeUsingTemporaryView[D].byTypeStrategy[(String, String), String, D].query
-  }
-
-  @deprecated(
-    "Use includeDocs.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
-  def queryIncludeDocs[D: R](ids: Seq[String]): Task[CouchDocs[String, CouchDocRev, D]] = {
-    withIds(ids).includeDocs[D].strategy[CouchDocs[String, CouchDocRev, D]].query
-  }
-
-  @deprecated(
-    "Use includeDocs.allowMissing.withIds(ids: Seq[String]).build.query instead.", "0.7.1")
-  def queryIncludeDocsAllowMissing[D: R](
-      ids: Seq[String]): Task[CouchDocsIncludesMissing[String, CouchDocRev, D]] = {
-    withIds(ids).includeDocs[D].allowMissing.strategy[CouchDocsIncludesMissing[String,
-        CouchDocRev, D]].query
-  }
-
-  private def byTypeStrategy[K: R, V: R, D: R](implicit tag: ClassTag[D], kw: W[K]) =
-    QueryByType[K, V, D](client, db, view.getOrElse(tempTypeFilterView), typeMappings)
-
-
-  private def strategy[Q: R]: QueryBasic[Q] =
-    new QueryBasic(client, db, url, params, ids)
 }
 
 object GetManyDocumentsQueryBuilder {
@@ -262,8 +177,9 @@ object GetManyDocumentsQueryBuilder {
 
   case class Builder[T: R, ID <: DocsInResult, AM <: MissingIdsInQuery]
   (builder: MDBuilder[ID, AM, AnyDocType]) {
-    def build: QueryBasic[T] = QueryBasic(builder.client, builder.db, builder.url,
-        builder.params, builder.ids)
+    def build: QueryBasic[T] = QueryBasic(
+      builder.client, builder.db, builder.url,
+      builder.params, builder.ids)
   }
 
   case class ByTypeBuilder[K: R, V: R, D: R](

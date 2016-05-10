@@ -17,10 +17,13 @@
 package com.ibm.couchdb.examples
 
 import com.ibm.couchdb._
+import org.slf4j.LoggerFactory
 
 import scalaz._
+import scalaz.concurrent.Task
 
 object Basic extends App {
+  private val logger = LoggerFactory.getLogger(Basic.getClass)
 
   // Define a simple case class to represent our data model
   case class Person(name: String, age: Int)
@@ -40,23 +43,24 @@ object Basic extends App {
   // Get an instance of the DB API by name and type mapping
   val db     = couch.db(dbName, typeMapping)
 
-  val actions = for {
-  // Delete the database or ignore the error if it doesn't exist
-    _ <- couch.dbs.delete(dbName).ignoreError
-    // Create a new database
-    _ <- couch.dbs.create(dbName)
-    // Insert documents into the database
-    _ <- db.docs.createMany(Seq(alice, bob, carl))
-    // Retrieve all documents from the database and unserialize to Person
-    docs <- db.docs.getMany.queryByTypeIncludeDocsWithTemporaryView[Person]
-  } yield docs.getDocsData
+  typeMapping.get(Person.getClass).foreach { mType =>
+    val actions: Task[Seq[Person]] = for {
+    // Delete the database or ignore the error if it doesn't exist
+      _ <- couch.dbs.delete(dbName).ignoreError
+      // Create a new database
+      _ <- couch.dbs.create(dbName)
+      // Insert documents into the database
+      _ <- db.docs.createMany(Seq(alice, bob, carl))
+      // Retrieve all documents from the database and unserialize to Person
+      docs <- db.docs.getMany.includeDocs[Person].byTypeUsingTemporaryView(mType).build.query
+    } yield docs.getDocsData
 
-  // Execute the actions and process the result
-  actions.attemptRun match {
-    // In case of an error (left side of Either), print it
-    case -\/(e) => println(e)
-    // In case of a success (right side of Either), print each object
-    case \/-(a) => a.foreach(println(_))
+    // Execute the actions and process the result
+    actions.attemptRun match {
+      // In case of an error (left side of Either), print it
+      case -\/(e) => logger.error(e.getMessage, e)
+      // In case of a success (right side of Either), print each object
+      case \/-(a) => a.foreach(x => logger.info(x.toString))
+    }
   }
-
 }

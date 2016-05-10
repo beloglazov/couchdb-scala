@@ -35,7 +35,6 @@ class CouchDbSpec extends CouchDbSpecification {
     }
 
     "Create and query 2 DBs" >> {
-
       def testDb(dbName: String): MatchResult[Seq[CouchKeyVal[String, String]]] = {
         await(couch.dbs.delete(dbName))
         val error = awaitLeft(couch.dbs.delete(dbName))
@@ -57,10 +56,9 @@ class CouchDbSpec extends CouchDbSpecification {
         awaitDocOk(db.design.create(fixDesign))
 
         val docs = awaitRight(
-          db.query.view[String, String](fixDesign.name, FixViews.names).get.query)
+          db.query.view[String, String](fixDesign.name, FixViews.names).get.build.query)
         docs.rows must haveLength(1)
       }
-
       testDb(db1)
       testDb(db2)
     }

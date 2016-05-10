@@ -21,8 +21,6 @@ import com.ibm.couchdb.core.Client
 import upickle.default.Aliases.{R, W}
 import upickle.default.write
 
-import scalaz.concurrent.Task
-
 sealed trait ViewOperation
 abstract class MapWithReduce[A: R] extends ViewOperation
 trait MapOnly extends ViewOperation
@@ -130,40 +128,11 @@ case class ViewQueryBuilder[K: R, V: R, DR <: DocsInResult, MR <: ViewOperation]
     set(key, value.toString)
   }
 
-  private def set[I <: DocsInResult, M <: ViewOperation](_params: Map[String, String],
-     _ids: Seq[K]): ViewQueryBuilder[K, V, I, M] = {
+  private def set[I <: DocsInResult, M <: ViewOperation](
+      _params: Map[String, String],
+      _ids: Seq[K]): ViewQueryBuilder[K, V, I, M] = {
     new ViewQueryBuilder(client, db, design, view, temporaryView, _params, _ids)
   }
-
-  @deprecated("Use build.query instead.", "0.7.2")
-  def query: Task[CouchKeyVals[K, V]] =
-    strategy[CouchKeyVals[K, V]].query
-
-  @deprecated("Use reduce[A].build.query instead.", "0.7.2")
-  def queryWithReduce[A: R]: Task[CouchReducedKeyVals[K, A]] = {
-    reduce[A].strategy[CouchReducedKeyVals[K, A]].query
-  }
-
-  @deprecated("Use withIds[K](ids: Seq[K]).build.query instead.", "0.7.2")
-  def query(keys: Seq[K]): Task[CouchKeyVals[K, V]] =
-    withIds(keys).strategy[CouchKeyVals[K, V]].query
-
-  @deprecated("Use withIds[K](ids: Seq[K]).reduce[A].build.query instead.", "0.7.2")
-  def queryWithReduce[A: R](keys: Seq[K]): Task[CouchReducedKeyVals[K, A]] = {
-    withIds(keys).reduce[A].group().strategy[CouchReducedKeyVals[K, A]].query
-  }
-
-  @deprecated("Use includeDocs[D].build.query instead.", "0.7.2")
-  def queryIncludeDocs[D: R]: Task[CouchDocs[K, V, D]] =
-    includeDocs[D].strategy[CouchDocs[K, V, D]].query
-
-  @deprecated("Use withIds[K](ids: Seq[K]).includeDocs[D].build.query instead.", "0.7.2")
-  def queryIncludeDocs[D: R](keys: Seq[K]): Task[CouchDocs[K, V, D]] = {
-    withIds(keys).includeDocs[D].strategy[CouchDocs[K, V, D]].query
-  }
-
-  private def strategy[Q: R]: QueryView[K, Q] =
-    new QueryView(client, db, design, params, ids, view, temporaryView)
 }
 
 object ViewQueryBuilder {
@@ -173,7 +142,8 @@ object ViewQueryBuilder {
 
   case class Builder[K: R, V: R, T: R, ID <: DocsInResult, MR <: ViewOperation](
       builder: VBuilder[K, V, ID, MR])(implicit kr: W[K], cdr: R[CouchKeyVals[K, V]]) {
-    def build: QueryView[K, T] = QueryView(builder.client, builder.db, builder.design,
+    def build: QueryView[K, T] = QueryView(
+      builder.client, builder.db, builder.design,
       builder.params, builder.ids, builder.view, builder.temporaryView)
   }
 
