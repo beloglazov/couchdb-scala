@@ -54,6 +54,9 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import"
 )
 
+scalacOptions in (Compile, console) ~= (_ filterNot (
+  List("-Ywarn-unused-import", "-Xfatal-warnings").contains(_)))
+
 wartremover.wartremoverSettings
 
 wartremover.wartremoverErrors in (Compile, compile) ++= Seq(
@@ -84,7 +87,7 @@ parallelExecution in Test := false
 
 unmanagedSourceDirectories in Compile += baseDirectory.value / "examples" / "src" / "main" / "scala"
 
-initialCommands in console := "import scalaz._, Scalaz._"
+initialCommands in console := "import scalaz._, Scalaz._, com.ibm.couchdb._"
 
 initialCommands in console in Test := "import scalaz._, Scalaz._, scalacheck.ScalazProperties._, " +
                                       "scalacheck.ScalazArbitrary._,scalacheck.ScalaCheckBinding._"
