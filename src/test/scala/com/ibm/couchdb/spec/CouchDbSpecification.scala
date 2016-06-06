@@ -19,7 +19,6 @@ package com.ibm.couchdb.spec
 import com.ibm.couchdb._
 import com.ibm.couchdb.api.Databases
 import com.ibm.couchdb.core.Client
-import com.ibm.couchdb.implicits.{TaskImplicits, UpickleImplicits}
 import org.specs2.matcher._
 import org.specs2.mutable._
 import org.specs2.scalaz.DisjunctionMatchers
@@ -32,9 +31,7 @@ trait CouchDbSpecification extends Specification with
     Fixtures with
     AllExpectations with
     DisjunctionMatchers with
-    MatcherMacros with
-    TaskImplicits with
-    UpickleImplicits {
+    MatcherMacros {
   sequential
 
   val client = new Client(

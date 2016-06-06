@@ -22,5 +22,11 @@ object Req {
 
   case class DocKeys[K](keys: Seq[K])
 
-  case class ViewWithKeys[K](keys: Seq[K], view: CouchView)
+  case class ViewWithKeys[K](keys: Seq[K], map: String, reduce: String)
+
+  object ViewWithKeys {
+    def apply[K](keys: Seq[K], view: CouchView): ViewWithKeys[K] = {
+      new ViewWithKeys(keys, view.map, view.reduce)
+    }
+  }
 }

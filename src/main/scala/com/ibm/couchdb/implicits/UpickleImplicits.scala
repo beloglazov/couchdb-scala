@@ -18,9 +18,8 @@ package com.ibm.couchdb.implicits
 
 import com.ibm.couchdb._
 import org.http4s.Status
-import upickle.Js.Value
 import upickle.default.Aliases.{R, W}
-import upickle.default.{Reader => Rr, Writer => Wr, readJs => rJs, writeJs => wJs}
+import upickle.default.{Reader => Rr, Writer => Wr, readJs => rJs}
 import upickle.{Js, Types}
 
 import scala.util.Try
@@ -34,20 +33,6 @@ trait UpickleImplicits extends Types {
 
   implicit val statusR: R[Status] = Rr[Status] {
     case json: Js.Num => Status.fromInt(json.value.toInt).toOption.get
-  }
-
-  implicit def dockViewWithKeysW[K: W]: W[Req.ViewWithKeys[K]] = Wr[Req.ViewWithKeys[K]] {
-    case Req.ViewWithKeys(keys, CouchView(map, reduce)) =>
-      Js.Obj(mapReduceParams(map, reduce) ++ Seq("keys" -> wJs(keys)): _*)
-  }
-
-  implicit val couchViewW: W[CouchView] = Wr[CouchView] {
-    case CouchView(map, reduce) => Js.Obj(mapReduceParams(map, reduce): _*)
-  }
-
-  private def mapReduceParams(map: String, reduce: String = ""): Seq[(String, Value)] = {
-    val m = Seq("map" -> wJs(map))
-    if (reduce.isEmpty) m else m ++ Seq("reduce" -> wJs(reduce))
   }
 
   implicit def couchKeyValOrErrorR[K: R, V: R]: Rr[\/[CouchKeyError[K], CouchKeyVal[K, V]]] = Rr {

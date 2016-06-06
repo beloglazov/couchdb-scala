@@ -17,7 +17,6 @@
 package com.ibm.couchdb.implicits
 
 import com.ibm.couchdb.spec.Fixtures
-import org.http4s.Status
 import org.specs2.mutable._
 import org.specs2.specification.AllExpectations
 import upickle.default.Aliases.{R, W}
@@ -25,8 +24,7 @@ import upickle.default.{read => pickleR, write => pickleW}
 
 class UpickleImplicitsSpec extends Specification
     with AllExpectations
-    with Fixtures
-    with UpickleImplicits {
+    with Fixtures {
 
   val map0  = Map[String, String]()
   val json0 = "{}"
@@ -44,6 +42,12 @@ class UpickleImplicitsSpec extends Specification
     "key1" -> FixPerson("Alice", 25), "key2" -> FixPerson("Bob", 30))
   val json4 = "{\"key1\":{\"name\":\"Alice\",\"age\":25},\"key2\":{\"name\":\"Bob\",\"age\":30}}"
 
+  val seq5  = List(1, 2, 3)
+  val json5 = "[1,2,3]"
+
+  val seq6  = Seq(1, 2, 3)
+  val json6 = "[1,2,3]"
+
   private def testRoundtrip[D](obj: D)(implicit r: R[D], w: W[D]) = {
     pickleR[D](pickleW(obj)) mustEqual obj
   }
@@ -56,6 +60,8 @@ class UpickleImplicitsSpec extends Specification
       pickleW(map2) mustEqual json2
       pickleW(map3) mustEqual json3
       pickleW(map4) mustEqual json4
+      pickleW(seq5) mustEqual json5
+      pickleW(seq6) mustEqual json6
     }
 
     "Read Map[String, D] from JSON" >> {
@@ -64,10 +70,11 @@ class UpickleImplicitsSpec extends Specification
       pickleR[Map[String, Int]](json2) mustEqual map2
       pickleR[Map[String, (String, Int)]](json3) mustEqual map3
       pickleR[Map[String, FixPerson]](json4) mustEqual map4
+      pickleR[List[Int]](json5) mustEqual seq5
     }
 
-    "Write and read an Status" >> {
-      testRoundtrip[Status](Status.Ok)
-    }
+//    "Write and read an Status" >> {
+//      testRoundtrip[Status](Status.Ok)
+//    }
   }
 }
