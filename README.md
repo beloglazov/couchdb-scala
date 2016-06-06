@@ -37,7 +37,8 @@ native API. Some good resources to learn CouchDB are:
   - [CouchDB: The Definitive Guide](http://guide.couchdb.org/)
   - [CouchDB Documentation](http://docs.couchdb.org/en/)
 
-To get started, add the following import to your Scala file:
+To get started, add the following import to your Scala file (or just start the
+SBT console with `sbt console`, which automatically adds the required imports):
 
 ```Scala
 import com.ibm.couchdb._
