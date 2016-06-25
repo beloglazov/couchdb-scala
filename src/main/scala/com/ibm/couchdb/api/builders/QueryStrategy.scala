@@ -21,6 +21,7 @@ import com.ibm.couchdb.core.Client
 import com.ibm.couchdb.{CouchDocs, CouchView, Req, Res, TypeMapping}
 import upickle.default.Aliases.{R, W}
 import upickle.default._
+import com.ibm.couchdb._
 
 import scala.reflect.ClassTag
 import scalaz.concurrent.Task

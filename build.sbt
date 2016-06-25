@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "org.http4s"                  %% "http4s-core"                 % "0.13.0a",
   "org.http4s"                  %% "http4s-client"               % "0.13.0a",
   "org.http4s"                  %% "http4s-blaze-client"         % "0.13.0a",
-  "com.lihaoyi"                 %% "upickle"                     % "0.3.9",
+  "com.lihaoyi"                 %% "upickle"                     % "0.4.1",
   "com.github.julien-truffaut"  %% "monocle-core"                % "1.2.0",
   "com.github.julien-truffaut"  %% "monocle-macro"               % "1.2.0",
   "org.log4s"                   %% "log4s"                       % "1.2.1",
