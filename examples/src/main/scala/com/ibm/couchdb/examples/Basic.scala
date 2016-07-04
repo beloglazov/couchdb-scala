@@ -43,7 +43,7 @@ object Basic extends App {
   // Get an instance of the DB API by name and type mapping
   val db     = couch.db(dbName, typeMapping)
 
-  typeMapping.get(Person.getClass).foreach { mType =>
+  typeMapping.get(classOf[Person]).foreach { mType =>
     val actions: Task[Seq[Person]] = for {
     // Delete the database or ignore the error if it doesn't exist
       _ <- couch.dbs.delete(dbName).ignoreError
