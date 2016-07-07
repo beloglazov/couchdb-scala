@@ -29,11 +29,11 @@ libraryDependencies ++= Seq(
   "com.github.julien-truffaut"  %% "monocle-core"                % "1.2.0",
   "com.github.julien-truffaut"  %% "monocle-macro"               % "1.2.0",
   "org.log4s"                   %% "log4s"                       % "1.2.1",
+  "ch.qos.logback"              %  "logback-classic"             % "1.1.6",
   "org.specs2"                  %% "specs2"                      % "3.7" % "test",
   "org.typelevel"               %% "scalaz-specs2"               % "0.3.0"  % "test",
   "org.scalacheck"              %% "scalacheck"                  % "1.13.0" % "test",
-  "org.scalaz"                  %% "scalaz-scalacheck-binding"   % "7.2.1"  % "test",
-  "ch.qos.logback"              %  "logback-classic"             % "1.1.6"  % "test"
+  "org.scalaz"                  %% "scalaz-scalacheck-binding"   % "7.2.1"  % "test"
 )
 
 scalacOptions ++= Seq(
