@@ -56,11 +56,12 @@ object Basic extends App {
     } yield docs.getDocsData
 
     // Execute the actions and process the result
-    actions.unsafePerformAsync {
+    actions.unsafePerformSyncAttempt match {
       // In case of an error (left side of Either), print it
       case -\/(e) => logger.error(e.getMessage, e)
       // In case of a success (right side of Either), print each object
       case \/-(a) => a.foreach(x => logger.info(x.toString))
     }
+    System.exit(0)
   }
 }
