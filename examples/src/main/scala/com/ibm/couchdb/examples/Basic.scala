@@ -62,6 +62,6 @@ object Basic extends App {
       // In case of a success (right side of Either), print each object
       case \/-(a) => a.foreach(x => logger.info(x.toString))
     }
-    System.exit(0)
+    couch.client.client.shutdownNow()
   }
 }
