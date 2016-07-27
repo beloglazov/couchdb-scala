@@ -43,7 +43,7 @@ object Basic extends App {
   // Get an instance of the DB API by name and type mapping
   val db     = couch.db(dbName, typeMapping)
 
-  typeMapping.get(Person.getClass).foreach { mType =>
+  typeMapping.get(classOf[Person]).foreach { mType =>
     val actions: Task[Seq[Person]] = for {
     // Delete the database or ignore the error if it doesn't exist
       _ <- couch.dbs.delete(dbName).ignoreError
@@ -56,11 +56,12 @@ object Basic extends App {
     } yield docs.getDocsData
 
     // Execute the actions and process the result
-    actions.unsafePerformAsync {
+    actions.unsafePerformSyncAttempt match {
       // In case of an error (left side of Either), print it
       case -\/(e) => logger.error(e.getMessage, e)
       // In case of a success (right side of Either), print each object
       case \/-(a) => a.foreach(x => logger.info(x.toString))
     }
+    couch.client.client.shutdownNow()
   }
 }
