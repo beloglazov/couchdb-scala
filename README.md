@@ -508,7 +508,7 @@ specified keys. For example, we can use that to get only documents of Alice and
 Carl:
 
 ```Scala
-ageView.build.query(Seq("Alice", "Carl"))
+ageView.withIds(Seq("Alice", "Carl")).build.query
 ```
 
 This return an instance of `Task[CouchKeyVals[String, Int]]`. For other usage
