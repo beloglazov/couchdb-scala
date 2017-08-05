@@ -500,7 +500,7 @@ This returns an instance of `Task[CouchDocs[String, Int, Person]]`, which once
 executed results in a sequence of objects encapsulating the metadata about the
 documents (`id`, `key`, `value`, `offset`, `total_rows`) and the corresponding
 `Person` objects. Please follow the definitions of case classes in
-[CouchModel](src/main/scala/com/ibm/couchdb/model/CouchModel.scala)
+[Model](src/main/scala/com/ibm/couchdb/Model.scala)
 to fully understand the structure of the returned objects.
 
 It's also possible to only get the documents from a view that match the
